@@ -6,7 +6,7 @@
 
 char *replace_substring(char *str1, char *str2, int index) {
     int j = 0;
-    for (int i = index; i < index + strlen(str2); i++) {
+    for (int i = index; (size_t)i < index + strlen(str2); i++) {
         str1[i] = str2[j];
         j++;
     }
@@ -36,34 +36,6 @@ UInt256 uint256_create(const uint32_t data[8]) {
     return result;
 }
 
-UInt256 uint256_create_from_hex2(const char *hex) {
-    UInt256 ans;
-
-    for (int i = 0; i < 8; i++) {
-        ans.data[i] = 0;
-    }
-
-    int index = 0;
-    for (int i = 0; i < strlen(hex); i += 8) {
-
-        //get current substring
-        char *currC = malloc(65 * sizeof(char));
-        printf("Length of hex: %d \n", strlen(hex));
-
-        for (int j = 0; j < 8 && i + j < strlen(hex); j++) {
-            int currIndex = j + i;
-            strncat(currC, hex + currIndex, 1);
-
-            printf(currC);
-        }
-
-        unsigned long currCtoLong = strtoul(currC, NULL, 16);
-        ans.data[index] = currCtoLong;
-        index++;
-        free(currC);
-    }
-    return ans;
-}
 
 // Create a UInt256 value from a string of hexadecimal digits.
 UInt256 uint256_create_from_hex(const char *hex) {
@@ -213,7 +185,28 @@ UInt256 uint256_negate(UInt256 val) {
 // should be shifted back into the least significant bits.
 UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
     UInt256 result;
-    // TODO: implement
+    for(int i = 0;i<8;i++) {
+      result.data[i] = val.data[i];
+    }
+    int index = 0;
+    uint32_t shifted, further_shifted, rotated;
+    while(index < 7) {
+      if (index != 0 ){
+        shifted = further_shifted;
+      } else {
+        shifted = result.data[index] >> (32-nbits);
+      }
+      
+      if(index == 7) {
+        break;
+      }
+      further_shifted = result.data[index+1] >> (32-nbits);
+      rotated = result.data[index+1] << nbits;
+      result.data[index+1] = rotated | shifted;
+      index++;
+    }
+    rotated = result.data[0] << nbits;
+    result.data[0] = rotated | further_shifted;
     return result;
 }
 
@@ -222,6 +215,27 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
 // should be shifted back into the most significant bits.
 UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
     UInt256 result;
-    // TODO: implement
+    for(int i = 0;i<8;i++) {
+      result.data[i] = val.data[i];
+    }
+    int index = 7;
+    uint32_t shifted, further_shifted, rotated;
+    while(index > 0) {
+      if (index != 7 ){
+        shifted = further_shifted;
+      } else {
+        shifted = result.data[index] << (32-nbits);
+      }
+      
+      if(index == 0) {
+        break;
+      }
+      further_shifted = result.data[index-1] << (32-nbits);
+      rotated = result.data[index-1] >> nbits;
+      result.data[index-1] = rotated | shifted;
+      index--;
+    }
+    rotated = result.data[7] >> nbits;
+    result.data[7] = rotated | further_shifted;
     return result;
 }

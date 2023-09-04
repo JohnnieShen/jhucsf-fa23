@@ -246,6 +246,10 @@ void test_rotate_left(TestObjs *objs) {
   // one position to the left should result in the value equal to 1
   // (i.e., the value with only the least significant bit set)
   result = uint256_rotate_left(objs->msb_set, 1);
+  // printf("\n");
+  // for(int i = 0;i<8;i++) {
+  //   printf("%u\n",result.data[i]);
+  // }
   ASSERT_SAME(objs->one, result);
 
   // after rotating the "rot" value left by 4 bits, the resulting value should be

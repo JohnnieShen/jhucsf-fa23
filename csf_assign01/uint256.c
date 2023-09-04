@@ -146,7 +146,7 @@ UInt256 uint256_add(UInt256 left, UInt256 right) {
         if (prevHas1) {
             currSum++;
         }
-        if(currSum < left.data[i] || prevHas1 && currSum <= left.data[i]){
+        if (currSum < left.data[i] || prevHas1 && currSum <= left.data[i]) {
             prevHas1 = 1;
         }
         sum.data[i] = currSum;
@@ -169,7 +169,7 @@ UInt256 uint256_sub(UInt256 left, UInt256 right) {
 // Return the two's-complement negation of the given UInt256 value.
 UInt256 uint256_negate(UInt256 val) {
     UInt256 result;
-    for(int i = 0; i < 8; i++){
+    for (int i = 0; i < 8; i++) {
         result.data[i] = ~val.data[i];
     }
     UInt256 one = uint256_create_from_hex("1");

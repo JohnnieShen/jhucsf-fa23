@@ -174,7 +174,7 @@ UInt256 uint256_add(UInt256 left, UInt256 right) {
         if (prevHas1) {
             currSum++;
         }
-        if(currSum < left.data[i] || prevHas1 && currSum <= left.data[i]){
+        if (currSum < left.data[i] || prevHas1 && currSum <= left.data[i]) {
             prevHas1 = 1;
         }
         sum.data[i] = currSum;
@@ -197,7 +197,7 @@ UInt256 uint256_sub(UInt256 left, UInt256 right) {
 // Return the two's-complement negation of the given UInt256 value.
 UInt256 uint256_negate(UInt256 val) {
     UInt256 result;
-    for(int i = 0; i < 8; i++){
+    for (int i = 0; i < 8; i++) {
         result.data[i] = ~val.data[i];
     }
     UInt256 one = uint256_create_from_hex("1");
@@ -212,7 +212,36 @@ UInt256 uint256_negate(UInt256 val) {
 // the left.  Any bits shifted past the most significant bit
 // should be shifted back into the least significant bits.
 UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
-    UInt256 result;
+//    UInt256 result;
+//    char *toString;
+//    for (int i = 0; i < 8; i++) {
+//        uint32_t ansL = val.data[i];
+//        while (ansL != 0) {
+//            int var = ansL % 2;
+//            char *str = "";
+//            sprintf(str, "%d", var);
+//            ansL = ansL / 2;
+//            strcat(toString, str);
+//        }
+//    }
+
+//    for(int i = 0; i < nbits; i++){
+//        char* first = toString[0];
+//        toString++;
+//        strcat(toString,first);
+//    }
+
+//    int index = 0;
+//    for(int i = 0; i < strlen(toString); i+= 8){
+//        char* this8val;
+//        for(int j = 0; j < 8; j++){
+//            strcat(this8val,toString[i + j]);
+//        }
+//        uint32_t  thisUint;
+//        strtoul(this8val, thisUint, 10);
+//        result.data[index] = thisUint;
+//        index++;
+//    }
     // TODO: implement
     return result;
 }

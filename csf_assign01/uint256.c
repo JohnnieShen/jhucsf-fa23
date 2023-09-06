@@ -6,7 +6,7 @@
 
 char *replace_substring(char *str1, char *str2, int index) {
     int j = 0;
-    for (int i = index; (size_t)i < index + strlen(str2); i++) {
+    for (int i = index; (size_t) i < index + strlen(str2); i++) {
         str1[i] = str2[j];
         j++;
     }
@@ -140,7 +140,7 @@ uint32_t uint256_get_bits(UInt256 val, unsigned index) {
 // Compute the sum of two UInt256 values.
 UInt256 uint256_add(UInt256 left, UInt256 right) {
     UInt256 sum;
-    for(int i = 0; i < 8; i++){
+    for (int i = 0; i < 8; i++) {
         sum.data[i] = 0;
     }
     int prevHas1 = 0;
@@ -150,10 +150,10 @@ UInt256 uint256_add(UInt256 left, UInt256 right) {
             currSum++;
         }
         //with currSum++, it is possible for left and right to have both max values then +1.
-        if (currSum < left.data[i] || currSum < right.data[i] || prevHas1 && currSum <= left.data[i] || prevHas1 && currSum <= right.data[i]) {
+        if (currSum < left.data[i] || currSum < right.data[i] || prevHas1 && currSum <= left.data[i] ||
+            prevHas1 && currSum <= right.data[i]) {
             prevHas1 = 1;
-        }
-        else{
+        } else {
             prevHas1 = 0;
         }
         sum.data[i] = currSum;
@@ -191,25 +191,39 @@ UInt256 uint256_negate(UInt256 val) {
 // should be shifted back into the least significant bits.
 UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
     UInt256 result;
-    for(int i = 0;i<8;i++) {
-      result.data[i] = val.data[i];
+
+    int count = 0;
+
+    while (nbits > 32) {
+        count++;
+        nbits %= 32;
     }
+
+    for (int i = 0; i < 8; i++) {
+        if (i + count > 8) {
+            result.data[i] = val.data[(i + count - 8)];
+        } else {
+            result.data[i] = val.data[(i + count)];
+        }
+    }
+
+
     int index = 0;
     uint32_t shifted, further_shifted, rotated;
-    while(index < 7) {
-      if (index != 0 ){
-        shifted = further_shifted;
-      } else {
-        shifted = result.data[index] >> (32-nbits);
-      }
-      
-      if(index == 7) {
-        break;
-      }
-      further_shifted = result.data[index+1] >> (32-nbits);
-      rotated = result.data[index+1] << nbits;
-      result.data[index+1] = rotated | shifted;
-      index++;
+    while (index < 7) {
+        if (index != 0) {
+            shifted = further_shifted;
+        } else {
+            shifted = result.data[index] >> (32 - nbits);
+        }
+
+        if (index == 7) {
+            break;
+        }
+        further_shifted = result.data[index + 1] >> (32 - nbits);
+        rotated = result.data[index + 1] << nbits;
+        result.data[index + 1] = rotated | shifted;
+        index++;
     }
     rotated = result.data[0] << nbits;
     result.data[0] = rotated | further_shifted;
@@ -221,27 +235,42 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
 // should be shifted back into the most significant bits.
 UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
     UInt256 result;
-    for(int i = 0;i<8;i++) {
-      result.data[i] = val.data[i];
+
+
+    for(int i = 0; i < 8; i++){
+        result.data[i] = val.data[i];
     }
+
+    while (nbits > 32) {
+        nbits = nbits % 32;
+        uint32_t temp = result.data[0];
+        for (int i = 0; i < 7; i++) {
+            result.data[i] = result.data[i + 1];
+        }
+        result.data[7] = temp;
+    }
+
+
     int index = 7;
     uint32_t shifted, further_shifted, rotated;
-    while(index > 0) {
-      if (index != 7 ){
-        shifted = further_shifted;
-      } else {
-        shifted = result.data[index] << (32-nbits);
-      }
-      
-      if(index == 0) {
-        break;
-      }
-      further_shifted = result.data[index-1] << (32-nbits);
-      rotated = result.data[index-1] >> nbits;
-      result.data[index-1] = rotated | shifted;
-      index--;
+    while (index > 0) {
+        if (index != 7) {
+            shifted = further_shifted;
+        } else {
+            shifted = result.data[index] << (32 - nbits);
+        }
+
+        if (index == 0) {
+            break;
+        }
+        further_shifted = result.data[index - 1] << (32 - nbits);
+        rotated = result.data[index - 1] >> nbits;
+        result.data[index - 1] = rotated | shifted;
+        index--;
     }
     rotated = result.data[7] >> nbits;
     result.data[7] = rotated | further_shifted;
     return result;
+
+
 }

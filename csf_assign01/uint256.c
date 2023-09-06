@@ -25,7 +25,7 @@ UInt256 uint256_create_from_u32(uint32_t val) {
     return result;
 }
 
-// Create a UInt256 value from an array of NWORDS uint32_t values.
+// Create a UInt256 value from an array of WORDS uint32_t values.
 // The element at index 0 is the least significant, and the element
 // at index 3 is the most significant.
 UInt256 uint256_create(const uint32_t data[8]) {
@@ -140,14 +140,21 @@ uint32_t uint256_get_bits(UInt256 val, unsigned index) {
 // Compute the sum of two UInt256 values.
 UInt256 uint256_add(UInt256 left, UInt256 right) {
     UInt256 sum;
+    for(int i = 0; i < 8; i++){
+        sum.data[i] = 0;
+    }
     int prevHas1 = 0;
     for (int i = 0; i < 8; i++) {
         uint32_t currSum = left.data[i] + right.data[i];
         if (prevHas1) {
             currSum++;
         }
-        if (currSum < left.data[i] || prevHas1 && currSum <= left.data[i]) {
+        //with currSum++, it is possible for left and right to have both max values then +1.
+        if (currSum < left.data[i] || currSum < right.data[i] || prevHas1 && currSum <= left.data[i] || prevHas1 && currSum <= right.data[i]) {
             prevHas1 = 1;
+        }
+        else{
+            prevHas1 = 0;
         }
         sum.data[i] = currSum;
     }
@@ -160,7 +167,6 @@ UInt256 uint256_sub(UInt256 left, UInt256 right) {
     UInt256 result;
     UInt256 negRight = uint256_negate(right);
     result = uint256_add(left, negRight);
-
 
     // TODO: implement
     return result;

@@ -10,6 +10,9 @@ typedef struct {
   UInt256 max;  // the value equal to (2^256)-1
   UInt256 msb_set; // the value equal to 2^255
   UInt256 rot; // value used to test rotations
+  UInt256 lsb_max;
+  UInt256 add_carryon;
+  UInt256 test_read_from_hex;
 } TestObjs;
 
 // Helper functions for implementing tests
@@ -85,6 +88,13 @@ TestObjs *setup(void) {
   set_all(&objs->one, 0);
   objs->one.data[0] = 1U;
   set_all(&objs->max, 0xFFFFFFFFU);
+  set_all(&objs->lsb_max, 0);
+  objs->lsb_max.data[0] = 0xFFFFFFFFU;
+  set_all(&objs->test_read_from_hex, 0);
+  objs->test_read_from_hex.data[0] = 0xFFFFFFFFU;
+  objs->test_read_from_hex.data[1] = 1U;
+  set_all(&objs->add_carryon, 0);
+  objs->add_carryon.data[1] = 1U;
 
   // create a value with only the most-significant bit set
   uint32_t msb_set_data[8] = { 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0x80000000U };
@@ -176,6 +186,20 @@ void test_create_from_hex(TestObjs *objs) {
   // }
   // printf("\n");
   ASSERT_SAME(objs->max, max);
+
+  UInt256 lsb_max = uint256_create_from_hex("ffffffff");
+  // for(int i = 0;i<8;i++) {
+  //   printf("%u ",lsb_max.data[i]);
+  // }
+  // printf("\n");
+  ASSERT_SAME(objs->lsb_max,lsb_max);
+
+  UInt256 test_read_from_hex = uint256_create_from_hex("1ffffffff");
+  // for(int i = 0;i<8;i++) {
+  //   printf("%u ",lsb_max.data[i]);
+  // }
+  // printf("\n");
+  ASSERT_SAME(objs->test_read_from_hex,test_read_from_hex);
 }
 
 void test_format_as_hex(TestObjs *objs) {
@@ -208,6 +232,12 @@ void test_add(TestObjs *objs) {
   INIT_FROM_ARR(two, two_data);
   result = uint256_add(objs->one, objs->one);
   ASSERT_SAME(two, result);
+
+  result = uint256_add(two,objs->zero);
+  ASSERT_SAME(two, result);
+
+  result = uint256_add(objs->lsb_max,objs->one);
+  ASSERT_SAME(objs->add_carryon,result);
 
   result = uint256_add(objs->max, objs->one);
   ASSERT_SAME(objs->zero, result);
@@ -263,6 +293,7 @@ void test_rotate_left(TestObjs *objs) {
   ASSERT(0U == result.data[5]);
   ASSERT(0U == result.data[6]);
   ASSERT(0xD0000000U == result.data[7]);
+
 }
 
 void test_rotate_right(TestObjs *objs) {

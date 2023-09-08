@@ -47,53 +47,25 @@ UInt256 uint256_create_from_hex(const char *hex) {
     //to record the buffer
     char substring[9];
     int hexLength = strlen(hex);
-    // int start = 0;
     int end = hexLength;
-    // if (hexLength > 64) {
-    //   start = hexLength - 64;
-    // }
-    // char hexstring[65];
-    // for (int i = 0;i<strlen(hex);i++) {
-    //   hex
-    // }
-
     //seperate hex in to 8 groups, each group having 8 bits
     for (int i = 0; i < 8; i++) {
+        for (int j = 0;j<8;j++) {
+            substring[j] = '\0';
+        }
         int start = end - 8;
         if (start < 0) {
             start = 0;
             strncpy(substring, hex + start, end - start);
+            //printf("\n\n%s %d %d\n\n",substring,start,end);
             result.data[i] = strtoul(substring, NULL, 16);
             break;
         } else {
             strncpy(substring, hex + start, end - start);
+            //printf("\n\n%s %d %d\n\n",substring,start,end);
             result.data[i] = strtoul(substring, NULL, 16);
         }
         end -= 8;
-        // hexLength = strlen(hex);
-        // if (hexLength <= 8) {
-        //   result.data[i] = strtoul(hex,NULL,16);
-        //   break;
-        // } else {
-        //   for (int j = 0;j<8;j++) {
-        //     substring[7-j] = hex[strlen(hex)-1];
-        //     hex[strlen(hex)-1] = '\0';
-        //   }
-        //   hex = hex+8;
-        // }
-
-        // int start = end - 8;
-        // if(start < 0) {
-        //   start = 0;
-        // }
-        // for(int j = 7;j>7-end+start;j--) {
-        //   substring[j] = hex[i*8+j];
-        // }
-        // for(int j = 7-end+start;j>=0;j--) {
-        //   substring[j] = '0';
-        // }
-        // result.data[i] = strtoul(substring,NULL,16);
-        // end -= 8;
     }
     return result;
 }
@@ -110,10 +82,7 @@ char *uint256_format_as_hex(UInt256 val) {
     for (int i = 7; i >= 0; i--) {
         if (i == 7 || val.data[7 - i] != 0) {
             sprintf(buf, "%x", val.data[7 - i]);
-            //printf("\nbefore\nbuf: %s\nhex: %s\ndata: %d\n",buf,hex,val.data[7-i]);
-            //strncpy(buf, hex+end-strlen(buf)-1, strlen(buf));
             replace_substring(hex, buf, end - strlen(buf));
-            //printf("\nbuf: %s\nhex: %s\nindex: %d\n",buf,hex,end-strlen(buf));
             end -= 8;
         } else {
             break;
@@ -146,7 +115,7 @@ UInt256 uint256_add(UInt256 left, UInt256 right) {
         if (prevHas1) {
             currSum++;
         }
-        if (currSum < left.data[i] || prevHas1 && currSum <= left.data[i]) {
+        if (currSum < left.data[i] || (prevHas1 && currSum <= left.data[i])) {
             prevHas1 = 1;
         }
         sum.data[i] = currSum;
@@ -172,7 +141,7 @@ UInt256 uint256_negate(UInt256 val) {
     for (int i = 0; i < 8; i++) {
         result.data[i] = ~val.data[i];
     }
-    UInt256 one = uint256_create_from_hex("1");
+    UInt256 one = uint256_create_from_u32(1);
     UInt256 ans;
     ans = uint256_add(result, one);
 
@@ -184,9 +153,12 @@ UInt256 uint256_negate(UInt256 val) {
 // the left.  Any bits shifted past the most significant bit
 // should be shifted back into the least significant bits.
 UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
+    int nbitsAfterShift = nbits % 256;
+    int biggerShift = nbitsAfterShift / 32;
+    int smallerShift = nbitsAfterShift % 32;
     UInt256 result;
     for(int i = 0;i<8;i++) {
-      result.data[i] = val.data[i];
+      result.data[(i+biggerShift)%8] = val.data[i];
     }
     int index = 0;
     uint32_t shifted, further_shifted, rotated;
@@ -194,18 +166,14 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
       if (index != 0 ){
         shifted = further_shifted;
       } else {
-        shifted = result.data[index] >> (32-nbits);
+        shifted = result.data[index] >> (32-smallerShift);
       }
-      
-      if(index == 7) {
-        break;
-      }
-      further_shifted = result.data[index+1] >> (32-nbits);
-      rotated = result.data[index+1] << nbits;
+      further_shifted = result.data[index+1] >> (32-smallerShift);
+      rotated = result.data[index+1] << smallerShift;
       result.data[index+1] = rotated | shifted;
       index++;
     }
-    rotated = result.data[0] << nbits;
+    rotated = result.data[0] << smallerShift;
     result.data[0] = rotated | further_shifted;
     return result;
 }
@@ -214,9 +182,12 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
 // the right. Any bits shifted past the least significant bit
 // should be shifted back into the most significant bits.
 UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
+    int nbitsAfterShift = nbits % 256;
+    int biggerShift = nbitsAfterShift / 32;
+    int smallerShift = nbitsAfterShift % 32;
     UInt256 result;
     for(int i = 0;i<8;i++) {
-      result.data[i] = val.data[i];
+      result.data[i] = val.data[(i+biggerShift)%8];
     }
     int index = 7;
     uint32_t shifted, further_shifted, rotated;
@@ -224,18 +195,14 @@ UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
       if (index != 7 ){
         shifted = further_shifted;
       } else {
-        shifted = result.data[index] << (32-nbits);
+        shifted = result.data[index] << (32-smallerShift);
       }
-      
-      if(index == 0) {
-        break;
-      }
-      further_shifted = result.data[index-1] << (32-nbits);
-      rotated = result.data[index-1] >> nbits;
+      further_shifted = result.data[index-1] << (32-smallerShift);
+      rotated = result.data[index-1] >> smallerShift;
       result.data[index-1] = rotated | shifted;
       index--;
     }
-    rotated = result.data[7] >> nbits;
+    rotated = result.data[7] >> smallerShift;
     result.data[7] = rotated | further_shifted;
     return result;
 }

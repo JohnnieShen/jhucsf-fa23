@@ -11,7 +11,7 @@ typedef struct {
   UInt256 msb_set; // the value equal to 2^255
   UInt256 rot; // value used to test rotations
   UInt256 lsb_max;
-  UInt256 add_carryon;
+  UInt256 one_on_1st;
   UInt256 test_read_from_hex;
 } TestObjs;
 
@@ -51,6 +51,7 @@ void test_sub(TestObjs *objs);
 void test_negate(TestObjs *objs);
 void test_rotate_left(TestObjs *objs);
 void test_rotate_right(TestObjs *objs);
+
 
 int main(int argc, char **argv) {
   if (argc > 1) {
@@ -93,8 +94,8 @@ TestObjs *setup(void) {
   set_all(&objs->test_read_from_hex, 0);
   objs->test_read_from_hex.data[0] = 0xFFFFFFFFU;
   objs->test_read_from_hex.data[1] = 1U;
-  set_all(&objs->add_carryon, 0);
-  objs->add_carryon.data[1] = 1U;
+  set_all(&objs->one_on_1st, 0);
+  objs->one_on_1st.data[1] = 1U;
 
   // create a value with only the most-significant bit set
   uint32_t msb_set_data[8] = { 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0x80000000U };
@@ -227,18 +228,22 @@ void test_add(TestObjs *objs) {
   result = uint256_add(objs->zero, objs->one);
   ASSERT_SAME(objs->one, result);
 
+  //test add one to one
   uint32_t two_data[8] = { 2U };
   UInt256 two;
   INIT_FROM_ARR(two, two_data);
   result = uint256_add(objs->one, objs->one);
   ASSERT_SAME(two, result);
 
+  //test add zero
   result = uint256_add(two,objs->zero);
   ASSERT_SAME(two, result);
 
+  //test carry
   result = uint256_add(objs->lsb_max,objs->one);
-  ASSERT_SAME(objs->add_carryon,result);
+  ASSERT_SAME(objs->one_on_1st,result);
 
+  //test overflow
   result = uint256_add(objs->max, objs->one);
   ASSERT_SAME(objs->zero, result);
 
@@ -256,6 +261,10 @@ void test_sub(TestObjs *objs) {
 
   result = uint256_sub(objs->zero, objs->one);
   ASSERT_SAME(objs->max, result);
+
+  //test minus zero
+  result = uint256_sub(objs->one, objs->zero);
+  ASSERT_SAME(objs->one, result);
 }
 
 void test_negate(TestObjs *objs) {
@@ -296,6 +305,8 @@ void test_rotate_left(TestObjs *objs) {
   ASSERT(0U == result.data[6]);
   ASSERT(0xD0000000U == result.data[7]);
 
+  result = uint256_rotate_left(objs->one,32);
+  ASSERT_SAME(objs->one_on_1st,result);
 }
 
 void test_rotate_right(TestObjs *objs) {
@@ -317,4 +328,7 @@ void test_rotate_right(TestObjs *objs) {
   ASSERT(0U == result.data[5]);
   ASSERT(0U == result.data[6]);
   ASSERT(0xBCD00000U == result.data[7]);
+
+  result = uint256_rotate_right(objs->one_on_1st,32);
+  ASSERT_SAME(objs->one,result);
 }

@@ -50,19 +50,17 @@ UInt256 uint256_create_from_hex(const char *hex) {
     int end = hexLength;
     //seperate hex in to 8 groups, each group having 8 bits
     for (int i = 0; i < 8; i++) {
-        for (int j = 0;j<8;j++) {
+        for (int j = 0;j<=8;j++) {
             substring[j] = '\0';
         }
         int start = end - 8;
         if (start < 0) {
             start = 0;
             strncpy(substring, hex + start, end - start);
-            //printf("\n\n%s %d %d\n\n",substring,start,end);
             result.data[i] = strtoul(substring, NULL, 16);
             break;
         } else {
             strncpy(substring, hex + start, end - start);
-            //printf("\n\n%s %d %d\n\n",substring,start,end);
             result.data[i] = strtoul(substring, NULL, 16);
         }
         end -= 8;
@@ -88,6 +86,7 @@ char *uint256_format_as_hex(UInt256 val) {
             break;
         }
     }
+    hex[64] = '\0';
     char *tmp = hex;
     while (tmp[0] == '0' && strlen(tmp) > 1) {
         tmp++;
@@ -119,8 +118,8 @@ UInt256 uint256_add(UInt256 left, UInt256 right) {
             currSum++;
         }
         //with currSum++, it is possible for left and right to have both max values then +1.
-        if (currSum < left.data[i] || currSum < right.data[i] || prevHas1 && currSum <= left.data[i] ||
-            prevHas1 && currSum <= right.data[i]) {
+        if (currSum < left.data[i] || currSum < right.data[i] || (prevHas1 && currSum <= left.data[i]) ||
+            (prevHas1 && currSum <= right.data[i])) {
             prevHas1 = 1;
         } else {
             prevHas1 = 0;
@@ -166,21 +165,24 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
     for(int i = 0;i<8;i++) {
       result.data[(i+biggerShift)%8] = val.data[i];
     }
+    if(smallerShift == 0) {
+        return result;
+    }
     int index = 0;
-    uint32_t shifted, further_shifted, rotated;
-    while(index < 7) {
+    uint32_t shifted, rotated, rotated_at_zero,tmp;
+    while(index <= 7) {
       if (index != 0 ){
-        shifted = further_shifted;
+        rotated = result.data[index] << smallerShift;
+        tmp = result.data[index];
+        result.data[index] = rotated | shifted;
+        shifted = tmp >> (32-smallerShift);
       } else {
+        rotated_at_zero = result.data[index] << smallerShift;
         shifted = result.data[index] >> (32-smallerShift);
       }
-      further_shifted = result.data[index+1] >> (32-smallerShift);
-      rotated = result.data[index+1] << smallerShift;
-      result.data[index+1] = rotated | shifted;
       index++;
     }
-    rotated = result.data[0] << smallerShift;
-    result.data[0] = rotated | further_shifted;
+    result.data[0] = rotated_at_zero | shifted;
     return result;
 }
 
@@ -195,23 +197,23 @@ UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
     for(int i = 0;i<8;i++) {
       result.data[i] = val.data[(i+biggerShift)%8];
     }
-
+    if(smallerShift == 0) {
+        return result;
+    }
     int index = 7;
-    uint32_t shifted, further_shifted, rotated;
-    while(index > 0) {
+    uint32_t shifted, rotated, rotated_at_seven,tmp;
+    while(index >=0) {
       if (index != 7 ){
-        shifted = further_shifted;
+        rotated = result.data[index] >> smallerShift;
+        tmp = result.data[index];
+        result.data[index] = rotated | shifted;
+        shifted = tmp << (32-smallerShift);
       } else {
+        rotated_at_seven = result.data[index] >> smallerShift;
         shifted = result.data[index] << (32-smallerShift);
       }
-      further_shifted = result.data[index-1] << (32-smallerShift);
-      rotated = result.data[index-1] >> smallerShift;
-      result.data[index-1] = rotated | shifted;
       index--;
     }
-    rotated = result.data[7] >> smallerShift;
-    result.data[7] = rotated | further_shifted;
+    result.data[7] = rotated_at_seven | shifted;
     return result;
-
-
 }

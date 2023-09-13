@@ -13,6 +13,7 @@ typedef struct {
   UInt256 lsb_max;
   UInt256 one_on_1st;
   UInt256 test_read_from_hex;
+  UInt256 test_read_from_hex_empty_byte;
 } TestObjs;
 
 // Helper functions for implementing tests
@@ -94,6 +95,10 @@ TestObjs *setup(void) {
   set_all(&objs->test_read_from_hex, 0);
   objs->test_read_from_hex.data[0] = 0xFFFFFFFFU;
   objs->test_read_from_hex.data[1] = 1U;
+  set_all(&objs->test_read_from_hex_empty_byte, 0);
+  objs->test_read_from_hex_empty_byte.data[0] = 0xFFFFFFFFU;
+  objs->test_read_from_hex_empty_byte.data[1] = 0;
+  objs->test_read_from_hex_empty_byte.data[2] = 1U;
   set_all(&objs->one_on_1st, 0);
   objs->one_on_1st.data[1] = 1U;
 
@@ -195,12 +200,21 @@ void test_create_from_hex(TestObjs *objs) {
   // printf("\n");
   ASSERT_SAME(objs->lsb_max,lsb_max);
 
-  UInt256 test_read_from_hex = uint256_create_from_hex("1ffffffff");
+  UInt256 test_read_from_hex_9_bits = uint256_create_from_hex("1ffffffff");
   // for(int i = 0;i<8;i++) {
   //   printf("%u ",lsb_max.data[i]);
   // }
   // printf("\n");
-  ASSERT_SAME(objs->test_read_from_hex,test_read_from_hex);
+  ASSERT_SAME(objs->test_read_from_hex,test_read_from_hex_9_bits);
+
+  UInt256 test_read_from_hex_empty_byte = uint256_create_from_hex("100000000ffffffff");
+  // for(int i = 0;i<8;i++) {
+  //   printf("%u ",lsb_max.data[i]);
+  // }
+  // printf("\n");
+  ASSERT_SAME(objs->test_read_from_hex_empty_byte,test_read_from_hex_empty_byte);
+
+  
 }
 
 void test_format_as_hex(TestObjs *objs) {
@@ -216,6 +230,14 @@ void test_format_as_hex(TestObjs *objs) {
 
   s = uint256_format_as_hex(objs->max);
   ASSERT(0 == strcmp("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", s));
+  free(s);
+
+  s = uint256_format_as_hex(objs->test_read_from_hex);
+  ASSERT(0 == strcmp("1ffffffff", s));
+  free(s);
+
+  s = uint256_format_as_hex(objs->test_read_from_hex_empty_byte);
+  ASSERT(0 == strcmp("100000000ffffffff", s));
   free(s);
 }
 
@@ -247,7 +269,24 @@ void test_add(TestObjs *objs) {
   result = uint256_add(objs->max, objs->one);
   ASSERT_SAME(objs->zero, result);
 
+  UInt256 left,right,correct_result;
+  left=uint256_create_from_hex("86146ac8648bdd446dc5247bf3c5e0d08186281d1f83d9786164026ead95f4b");
+  right=uint256_create_from_hex("ca05c36598289cbb3888e259ff8493697efb60fbad0071659f0f14ddb0c2801");
+  correct_result=uint256_create_from_hex("1501a2e2dfcb479ffa64e06d5f34a743a00818918cc844ade0073174c5e5874c");
+  result=uint256_add(left,right);
+  ASSERT_SAME(result,correct_result);
 
+  left=uint256_create_from_hex("8826b099c58436e722fbf6faa645c68bb2eb121f52f293ba91f0903d4087877");
+  right=uint256_create_from_hex("404fc134cce3d6dfd845a91bed987e1c6b36eb5e6a9b0416432a9d399d34bb3");
+  correct_result=uint256_create_from_hex("c87671ce92680dc6fb41a01693de44a81e21fd7dbd8d97d0d51b2d76ddbc42a");
+  result=uint256_add(left,right);
+  ASSERT_SAME(result,correct_result);
+
+  left=uint256_create_from_hex("bc43c159f7af16de234a02b4cd5dcb587d004a771bb7a4e27a5c668e9e2f0b1");
+  right=uint256_create_from_hex("55003206ef890bbefa44acc6c3fb53fe975a22ad57bca3e2955eb85bab6f0a1");
+  correct_result=uint256_create_from_hex("11143f360e738229d1d8eaf7b91591f57145a6d24737448c50fbb1eea499e152");
+  result=uint256_add(left,right);
+  ASSERT_SAME(result,correct_result);
 }
 
 void test_sub(TestObjs *objs) {
@@ -265,6 +304,25 @@ void test_sub(TestObjs *objs) {
   //test minus zero
   result = uint256_sub(objs->one, objs->zero);
   ASSERT_SAME(objs->one, result);
+
+  UInt256 left,right,correct_result;
+  left=uint256_create_from_hex("ef256b65e9746e2744f5865c91015ea7ff9d10403f09c92f71cf5a4190dbfb4");
+  right=uint256_create_from_hex("aab03404f5bf3b307f8d32689b16aaddb6a20ec64224f7e2dbb7161698bb7f6");
+  correct_result=uint256_create_from_hex("44753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be");
+  result=uint256_sub(left,right);
+  ASSERT_SAME(result,correct_result);
+
+  left=uint256_create_from_hex("d04035ca78313006ce75e268f264adb68a2cd6fc58b5162562d826e7d15f73a");
+  right=uint256_create_from_hex("bbc32d931d41356e86fc23ac57ec10c80861c183aaa90c57e1eae1019b6771d");
+  correct_result=uint256_create_from_hex("147d08375aeffa984779bebc9a789cee81cb1578ae0c09cd80ed45e635f801d");
+  result=uint256_sub(left,right);
+  ASSERT_SAME(result,correct_result);
+
+  left=uint256_create_from_hex("dd75b9574c4db0b67567219c13580a16b38c363b1d4b111eb3835ad57c2a26d");
+  right=uint256_create_from_hex("9db1c509a40d6956167cf6e70b6c43a27ab4fc0a6f9991fdccc94a8aa73bde1");
+  correct_result=uint256_create_from_hex("3fc3f44da84047605eea2ab507ebc67438d73a30adb17f20e6ba104ad4ee48c");
+  result=uint256_sub(left,right);
+  ASSERT_SAME(result,correct_result);
 }
 
 void test_negate(TestObjs *objs) {
@@ -307,6 +365,18 @@ void test_rotate_left(TestObjs *objs) {
 
   result = uint256_rotate_left(objs->one,32);
   ASSERT_SAME(objs->one_on_1st,result);
+
+  UInt256 long_hex,correct_result_8_bits,correct_result_36_bits,correct_result_260_bits,long_hex_rotated_left_8_bits,long_hex_rotated_left_36_bits,long_hex_rotated_left_260_bits;
+  long_hex=uint256_create_from_hex("44753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be1");
+  correct_result_8_bits=uint256_create_from_hex("753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be144");
+  correct_result_36_bits=uint256_create_from_hex("3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be144753760f");
+  correct_result_260_bits=uint256_create_from_hex("4753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be14");
+  long_hex_rotated_left_8_bits = uint256_rotate_left(long_hex,8);
+  long_hex_rotated_left_36_bits = uint256_rotate_left(long_hex,36);
+  long_hex_rotated_left_260_bits = uint256_rotate_left(long_hex,260);
+  ASSERT_SAME(correct_result_8_bits,long_hex_rotated_left_8_bits);
+  ASSERT_SAME(correct_result_36_bits,long_hex_rotated_left_36_bits);
+  ASSERT_SAME(correct_result_260_bits,long_hex_rotated_left_260_bits);
 }
 
 void test_rotate_right(TestObjs *objs) {
@@ -331,4 +401,16 @@ void test_rotate_right(TestObjs *objs) {
 
   result = uint256_rotate_right(objs->one_on_1st,32);
   ASSERT_SAME(objs->one,result);
+
+  UInt256 long_hex,correct_result_8_bits,correct_result_36_bits,correct_result_260_bits,long_hex_rotated_right_8_bits,long_hex_rotated_right_36_bits,long_hex_rotated_right_260_bits;
+  long_hex=uint256_create_from_hex("44753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be1");
+  correct_result_8_bits=uint256_create_from_hex("e144753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207b");
+  correct_result_36_bits=uint256_create_from_hex("af8207be144753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442");
+  correct_result_260_bits=uint256_create_from_hex("144753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be");
+  long_hex_rotated_right_8_bits = uint256_rotate_right(long_hex,8);
+  long_hex_rotated_right_36_bits = uint256_rotate_right(long_hex,36);
+  long_hex_rotated_right_260_bits = uint256_rotate_right(long_hex,260);
+  ASSERT_SAME(correct_result_8_bits,long_hex_rotated_right_8_bits);
+  ASSERT_SAME(correct_result_36_bits,long_hex_rotated_right_36_bits);
+  ASSERT_SAME(correct_result_260_bits,long_hex_rotated_right_260_bits);
 }

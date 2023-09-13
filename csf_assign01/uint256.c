@@ -83,7 +83,8 @@ char *uint256_format_as_hex(UInt256 val) {
             replace_substring(hex, buf, end - strlen(buf));
             end -= 8;
         } else {
-            break;
+            replace_substring(hex, "00000000", end - strlen(buf));
+            end -= 8;
         }
     }
     hex[64] = '\0';

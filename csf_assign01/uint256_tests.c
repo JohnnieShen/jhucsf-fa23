@@ -173,45 +173,23 @@ void test_create(TestObjs *objs) {
 
 void test_create_from_hex(TestObjs *objs) {
   UInt256 zero = uint256_create_from_hex("0");
-  // for(int i = 0;i<8;i++) {
-  //   printf("%u ",zero.data[i]);
-  // }
-  // printf("\n");
   ASSERT_SAME(objs->zero, zero);
 
   UInt256 one = uint256_create_from_hex("1");
-  // for(int i = 0;i<8;i++) {
-  //   printf("%u ",zero.data[i]);
-  // }
-  // printf("\n");
   ASSERT_SAME(objs->one, one);
 
   UInt256 max = uint256_create_from_hex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-  // for(int i = 0;i<8;i++) {
-  //   printf("%u ",zero.data[i]);
-  // }
-  // printf("\n");
   ASSERT_SAME(objs->max, max);
 
   UInt256 lsb_max = uint256_create_from_hex("ffffffff");
-  // for(int i = 0;i<8;i++) {
-  //   printf("%u ",lsb_max.data[i]);
-  // }
-  // printf("\n");
   ASSERT_SAME(objs->lsb_max,lsb_max);
 
+  //test creating from a string that has more than one non-zero 32 bit byte
   UInt256 test_read_from_hex_9_bits = uint256_create_from_hex("1ffffffff");
-  // for(int i = 0;i<8;i++) {
-  //   printf("%u ",lsb_max.data[i]);
-  // }
-  // printf("\n");
   ASSERT_SAME(objs->test_read_from_hex,test_read_from_hex_9_bits);
 
+  //test creating from a string with a empty 32 bit byte
   UInt256 test_read_from_hex_empty_byte = uint256_create_from_hex("100000000ffffffff");
-  // for(int i = 0;i<8;i++) {
-  //   printf("%u ",lsb_max.data[i]);
-  // }
-  // printf("\n");
   ASSERT_SAME(objs->test_read_from_hex_empty_byte,test_read_from_hex_empty_byte);
 
   
@@ -236,6 +214,7 @@ void test_format_as_hex(TestObjs *objs) {
   ASSERT(0 == strcmp("1ffffffff", s));
   free(s);
 
+  //test formatting a string that has a empty 32 bit byte
   s = uint256_format_as_hex(objs->test_read_from_hex_empty_byte);
   ASSERT(0 == strcmp("100000000ffffffff", s));
   free(s);
@@ -298,6 +277,7 @@ void test_sub(TestObjs *objs) {
   result = uint256_sub(objs->one, objs->one);
   ASSERT_SAME(objs->zero, result);
 
+  //test negative overflow
   result = uint256_sub(objs->zero, objs->one);
   ASSERT_SAME(objs->max, result);
 
@@ -305,6 +285,7 @@ void test_sub(TestObjs *objs) {
   result = uint256_sub(objs->one, objs->zero);
   ASSERT_SAME(objs->one, result);
 
+  //test with random data generated
   UInt256 left,right,correct_result;
   left=uint256_create_from_hex("ef256b65e9746e2744f5865c91015ea7ff9d10403f09c92f71cf5a4190dbfb4");
   right=uint256_create_from_hex("aab03404f5bf3b307f8d32689b16aaddb6a20ec64224f7e2dbb7161698bb7f6");
@@ -366,6 +347,7 @@ void test_rotate_left(TestObjs *objs) {
   result = uint256_rotate_left(objs->one,32);
   ASSERT_SAME(objs->one_on_1st,result);
 
+  //test with random data generated
   UInt256 long_hex,correct_result_8_bits,correct_result_36_bits,correct_result_260_bits,long_hex_rotated_left_8_bits,long_hex_rotated_left_36_bits,long_hex_rotated_left_260_bits;
   long_hex=uint256_create_from_hex("44753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be1");
   correct_result_8_bits=uint256_create_from_hex("753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be144");
@@ -402,6 +384,7 @@ void test_rotate_right(TestObjs *objs) {
   result = uint256_rotate_right(objs->one_on_1st,32);
   ASSERT_SAME(objs->one,result);
 
+  //test with random data generated
   UInt256 long_hex,correct_result_8_bits,correct_result_36_bits,correct_result_260_bits,long_hex_rotated_right_8_bits,long_hex_rotated_right_36_bits,long_hex_rotated_right_260_bits;
   long_hex=uint256_create_from_hex("44753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207be1");
   correct_result_8_bits=uint256_create_from_hex("e144753760f3b532f6c56853f3f5eab3ca48fb0179fce4d14c9618442af8207b");

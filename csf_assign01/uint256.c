@@ -4,13 +4,14 @@
 #include <stdio.h>
 #include "uint256.h"
 
-char *replace_substring(char *str1, char *str2, int index) {
+//Takes two strings, copies the content from src into des starting at index
+char *replace_substring(char *des, char *src, int index) {
     int j = 0;
-    for (int i = index; (size_t) i < index + strlen(str2); i++) {
-        str1[i] = str2[j];
+    for (int i = index; (size_t) i < index + strlen(src); i++) {
+        des[i] = src[j];
         j++;
     }
-    return str1;
+    return des;
 }
 
 // Create a UInt256 value from a single uint32_t value.
@@ -54,7 +55,7 @@ UInt256 uint256_create_from_hex(const char *hex) {
             substring[j] = '\0';
         }
         int start = end - 8;
-        if (start < 0) {
+        if (start < 0) { //not enough bits, the input hex has less than 64 bits
             start = 0;
             strncpy(substring, hex + start, end - start);
             result.data[i] = strtoul(substring, NULL, 16);
@@ -76,6 +77,7 @@ char *uint256_format_as_hex(UInt256 val) {
         hex[i] = '0';
     }
     int end = 64;
+    //beginning at the last bits of the output
     char *buf = (char *) malloc(9 * sizeof(char));
     for (int i = 7; i >= 0; i--) {
         if (i == 7 || val.data[7 - i] != 0) {
@@ -83,16 +85,18 @@ char *uint256_format_as_hex(UInt256 val) {
             replace_substring(hex, buf, end - strlen(buf));
             end -= 8;
         } else {
+            //if the data at val[7-i] was zero, we just insert 00000000 into hex
             replace_substring(hex, "00000000", end - strlen(buf));
             end -= 8;
         }
     }
-    hex[64] = '\0';
+    hex[64] = '\0'; //set the null terminator to make hex a string
     char *tmp = hex;
+    //removes the leading 0s
     while (tmp[0] == '0' && strlen(tmp) > 1) {
         tmp++;
     }
-    memmove(hex, tmp, 65 - (tmp - hex));
+    memmove(hex, tmp, 65 - (tmp - hex)); //making sure the memory gets freed outside the function
     free(buf);
     return hex;
 }
@@ -159,10 +163,11 @@ UInt256 uint256_negate(UInt256 val) {
 // the left.  Any bits shifted past the most significant bit
 // should be shifted back into the least significant bits.
 UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
-    int nbitsAfterShift = nbits % 256;
-    int biggerShift = nbitsAfterShift / 32;
-    int smallerShift = nbitsAfterShift % 32;
+    int nbitsShifted = nbits % 256;
+    int biggerShift = nbitsShifted / 32; //how many times we need to shift 32 bits as a whole
+    int smallerShift = nbitsShifted % 32; //how many times we need to shift individual bits
     UInt256 result;
+    //shifts 32 bits every time as a whole
     for(int i = 0;i<8;i++) {
       result.data[(i+biggerShift)%8] = val.data[i];
     }
@@ -170,6 +175,8 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
         return result;
     }
     int index = 0;
+    //shifted is the data we shift out to the left at every index
+    //rotated is the data we keep at every index
     uint32_t shifted, rotated, rotated_at_zero,tmp;
     while(index <= 7) {
       if (index != 0 ){
@@ -191,10 +198,11 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
 // the right. Any bits shifted past the least significant bit
 // should be shifted back into the most significant bits.
 UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
-    int nbitsAfterShift = nbits % 256;
-    int biggerShift = nbitsAfterShift / 32;
-    int smallerShift = nbitsAfterShift % 32;
+    int nbitsShifted = nbits % 256;
+    int biggerShift = nbitsShifted / 32; //how many times we need to shift 32 bits as a whole
+    int smallerShift = nbitsShifted % 32; //how many times we need to shift individual bits
     UInt256 result;
+    //shifts 32 bits every time as a whole
     for(int i = 0;i<8;i++) {
       result.data[i] = val.data[(i+biggerShift)%8];
     }
@@ -202,6 +210,8 @@ UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
         return result;
     }
     int index = 7;
+    //shifted is the data we shift out to the right at every index
+    //rotated is the data we keep at every index
     uint32_t shifted, rotated, rotated_at_seven,tmp;
     while(index >=0) {
       if (index != 7 ){

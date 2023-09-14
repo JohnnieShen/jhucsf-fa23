@@ -164,7 +164,7 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
     int smallerShift = nbitsAfterShift % 32;
     UInt256 result;
     for(int i = 0;i<8;i++) {
-      result.data[(i+biggerShift)%8] = val.data[i];
+        result.data[(i+biggerShift)%8] = val.data[i];
     }
     if(smallerShift == 0) {
         return result;
@@ -172,16 +172,16 @@ UInt256 uint256_rotate_left(UInt256 val, unsigned nbits) {
     int index = 0;
     uint32_t shifted, rotated, rotated_at_zero,tmp;
     while(index <= 7) {
-      if (index != 0 ){
-        rotated = result.data[index] << smallerShift;
-        tmp = result.data[index];
-        result.data[index] = rotated | shifted;
-        shifted = tmp >> (32-smallerShift);
-      } else {
-        rotated_at_zero = result.data[index] << smallerShift;
-        shifted = result.data[index] >> (32-smallerShift);
-      }
-      index++;
+        if (index != 0 ){
+            rotated = result.data[index] << smallerShift;
+            tmp = result.data[index];
+            result.data[index] = rotated | shifted;
+            shifted = tmp >> (32-smallerShift);
+        } else {
+            rotated_at_zero = result.data[index] << smallerShift;
+            shifted = result.data[index] >> (32-smallerShift);
+        }
+        index++;
     }
     result.data[0] = rotated_at_zero | shifted;
     return result;
@@ -196,7 +196,7 @@ UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
     int smallerShift = nbitsAfterShift % 32;
     UInt256 result;
     for(int i = 0;i<8;i++) {
-      result.data[i] = val.data[(i+biggerShift)%8];
+        result.data[i] = val.data[(i+biggerShift)%8];
     }
     if(smallerShift == 0) {
         return result;
@@ -204,16 +204,16 @@ UInt256 uint256_rotate_right(UInt256 val, unsigned nbits) {
     int index = 7;
     uint32_t shifted, rotated, rotated_at_seven,tmp;
     while(index >=0) {
-      if (index != 7 ){
-        rotated = result.data[index] >> smallerShift;
-        tmp = result.data[index];
-        result.data[index] = rotated | shifted;
-        shifted = tmp << (32-smallerShift);
-      } else {
-        rotated_at_seven = result.data[index] >> smallerShift;
-        shifted = result.data[index] << (32-smallerShift);
-      }
-      index--;
+        if (index != 7 ){
+            rotated = result.data[index] >> smallerShift;
+            tmp = result.data[index];
+            result.data[index] = rotated | shifted;
+            shifted = tmp << (32-smallerShift);
+        } else {
+            rotated_at_seven = result.data[index] >> smallerShift;
+            shifted = result.data[index] << (32-smallerShift);
+        }
+        index--;
     }
     result.data[7] = rotated_at_seven | shifted;
     return result;

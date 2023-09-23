@@ -1,0 +1,7 @@
+/*.o
+/depend.mak
+/c_wctests
+/c_wordcount
+/asm_wctests
+/asm_wordcount
+/casm_wordcount

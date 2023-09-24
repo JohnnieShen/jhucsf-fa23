@@ -8,6 +8,7 @@
 // TODO: prototypes for helper functions
 
 int main(int argc, char **argv) {
+  FILE *fp;
   // stats (to be printed at end)
   uint32_t total_words = 0;
   uint32_t unique_words = 0;
@@ -15,7 +16,10 @@ int main(int argc, char **argv) {
   uint32_t best_word_count = 0;
 
   // TODO: implement
+  struct WordEntry *bucket[HASHTABLE_SIZE];
 
+  fp = fopen(argv[1],"r");
+  
   printf("Total words read: %u\n", (unsigned int) total_words);
   printf("Unique words read: %u\n", (unsigned int) unique_words);
   printf("Most frequent word: %s (%u)\n", (const char *) best_word, best_word_count);

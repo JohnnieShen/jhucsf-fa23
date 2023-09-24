@@ -57,8 +57,28 @@ wc_hash:
  */
 	.globl wc_str_compare
 wc_str_compare:
-	/* TODO: implement */
-	ret
+    jmp     .L2
+.L3:
+    addq    $1, %rdi
+    addq    $1, %rsi
+.L2:
+    movzbl  (%rdi), %eax
+    testb   %al, %al
+    je      .L5
+    movzbl  (%rsi), %edx
+    testb   %dl, %dl
+    je      .L5
+    cmpb    %dl, %al
+    je      .L3
+    movzbl  %al, %eax
+    movzbl  %dl, %edx
+    subl    %edx, %eax
+    ret
+.L5:
+    movzbl  %al, %eax
+    movzbl  (%rsi), %edx
+    subl    %edx, %eax
+    ret
 
 /*
  * Copy NUL-terminated source string to the destination buffer.
@@ -89,8 +109,34 @@ wc_str_copy:
  */
 	.globl wc_isspace
 wc_isspace:
-	/* TODO: implement */
-	ret
+    cmpb    $32, %dil
+    sete    %dl
+    cmpb    $9, %dil
+    sete    %al
+    orb     %al, %dl
+    jne     .L3
+    cmpb    $13, %dil
+    sete    %al
+    cmpb    $10, %dil
+    sete    %dl
+    testb   %al, %al
+    jne     .L4
+    testb   %dl, %dl
+    jne     .L4
+    subl    $11, %edi
+    cmpb    $1, %dil
+    jbe     .L5
+    movl    $0, %eax
+    ret
+.L3:
+    movl    $1, %eax
+    ret
+.L4:
+    movl    $1, %eax
+    ret
+.L5:
+    movl    $1, %eax
+    ret
 
 /*
  * Return 1 if the character code in c is an alphabetic character
@@ -101,8 +147,19 @@ wc_isspace:
  */
 	.globl wc_isalpha
 wc_isalpha:
-	/* TODO: implement */
-	ret
+    leal    -65(%rdi), %eax
+    cmpb    $25, %al
+    setbe   %dl
+    subl    $97, %edi
+    cmpb    $25, %dil
+    setbe   %al
+    orb     %al, %dl
+    jne     .L3
+    movl    $0, %eax
+    ret
+.L3:
+    movl    $1, %eax
+    ret
 
 /*
  * Read the next word from given input stream, storing

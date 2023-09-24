@@ -52,7 +52,7 @@ int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs) {
 
 // Copy NUL-terminated source string to the destination buffer.
 void wc_str_copy(unsigned char *dest, const unsigned char *source) {
-  while (*source != '\0' && *source != NULL) {
+  while (*source != '\0' && *source) {
     *dest = *source;
     dest++;
     source++;
@@ -99,40 +99,6 @@ int wc_isalpha(unsigned char c) {
 // MAX_WORDLEN characters, then only the first MAX_WORDLEN
 // characters in the sequence should be stored in the array.
 int wc_readnext(FILE *in, unsigned char *w) {
-  // unsigned char c;
-  //   c = fgetc(in);
-  //   if(c == EOF){
-  //       return 0;
-  //   }
-  //   //check if it is whitespace, get the first nonwhitespace character
-  //   while (wc_isspace(c)){
-  //       c = fgetc(in);
-  //       if(c == EOF){
-  //           return 0;
-  //       }
-  //   }
-
-  //   //we found the first nonwhitespace character
-  //   int count = 0;
-  //   while(!wc_isspace(c)){
-  //       count++;
-  //       *w = c;
-
-  //       //do we need to continue reading the word if it passes MAX_WORDLEN
-  //       if(count >= MAX_WORDLEN){
-  //           break;
-  //       }
-
-  //       c = fgetc(in);
-  //       w++;
-
-  //       if(c == EOF){
-  //           *w = '\0';
-  //           return 1;
-  //       }
-  //   }
-  //   *w = '\0';
-  //   return 1;
   int ch;
   int count = 0;
   if (!in || !w) return 0;
@@ -169,7 +135,6 @@ void wc_tolower(unsigned char *w) {
 // Remove any non-alphaabetic characters from the end of the
 // NUL-terminated character string pointed-to by w.
 void wc_trim_non_alpha(unsigned char *w) {
-  unsigned int length = 0;
     unsigned char* finalDest = w;
     while((*finalDest)){
         finalDest++;
@@ -177,7 +142,7 @@ void wc_trim_non_alpha(unsigned char *w) {
     finalDest--;
 
   unsigned char c;
-  while((c = *finalDest) && finalDest > w){
+  while((c = *finalDest) && finalDest >= w){
       if(wc_isalpha(c)){
           break;
       }
@@ -201,8 +166,9 @@ void wc_trim_non_alpha(unsigned char *w) {
 // job to update the count.)
 struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char *s, int *inserted) {
   struct WordEntry *temp = head;
+  
   while (temp != NULL) {
-      if (wc_str_compare((const unsigned char *)temp->word, (const unsigned char *)s) == 0 && temp != NULL) {
+      if (wc_str_compare((const unsigned char *)temp->word, (const unsigned char *)s) == 0) {
           *inserted = 0;
           return temp;
       }
@@ -213,6 +179,11 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
   wc_str_copy((unsigned char *)new_entry->word, (unsigned const char *)s);
   new_entry->count = 0;
   new_entry->next = head;
+  // if (wc_str_compare(new_entry->word,(const unsigned char *)"dominates") == 0 || wc_str_compare(new_entry->word,(const unsigned char *)"sustained") == 0) {
+  //           printf("new %s\nold %s\n",new_entry->word,new_entry->next->word);
+
+  //       }
+        
   *inserted = 1;
   return new_entry;
 }
@@ -226,9 +197,13 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
 // which represents s.
 struct WordEntry *wc_dict_find_or_insert(struct WordEntry *buckets[], unsigned num_buckets, const unsigned char *s) {
   uint32_t index = wc_hash(s) % num_buckets;
+  struct WordEntry *temp;
   int inserted = 0;
-  buckets[index] = wc_find_or_insert(buckets[index], s, &inserted);
-  return buckets[index];
+  temp = wc_find_or_insert(buckets[index], s, &inserted);
+  if(inserted == 1) {
+    buckets[index] = temp;
+  }
+  return temp;
 }
 
 // Free all of the nodes in given linked list of WordEntry objects.

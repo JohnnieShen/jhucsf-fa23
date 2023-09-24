@@ -99,40 +99,60 @@ int wc_isalpha(unsigned char c) {
 // MAX_WORDLEN characters, then only the first MAX_WORDLEN
 // characters in the sequence should be stored in the array.
 int wc_readnext(FILE *in, unsigned char *w) {
-  unsigned char c;
-    c = fgetc(in);
-    if(c == EOF){
-        return 0;
-    }
-    //check if it is whitespace, get the first nonwhitespace character
-    while (wc_isspace(c)){
-        c = fgetc(in);
-        if(c == EOF){
-            return 0;
-        }
-    }
+  // unsigned char c;
+  //   c = fgetc(in);
+  //   if(c == EOF){
+  //       return 0;
+  //   }
+  //   //check if it is whitespace, get the first nonwhitespace character
+  //   while (wc_isspace(c)){
+  //       c = fgetc(in);
+  //       if(c == EOF){
+  //           return 0;
+  //       }
+  //   }
 
-    //we found the first nonwhitespace character
-    int count = 0;
-    while(!wc_isspace(c)){
-        count++;
-        *w = c;
+  //   //we found the first nonwhitespace character
+  //   int count = 0;
+  //   while(!wc_isspace(c)){
+  //       count++;
+  //       *w = c;
 
-        //do we need to continue reading the word if it passes MAX_WORDLEN
-        if(count >= MAX_WORDLEN){
-            break;
-        }
+  //       //do we need to continue reading the word if it passes MAX_WORDLEN
+  //       if(count >= MAX_WORDLEN){
+  //           break;
+  //       }
 
-        c = fgetc(in);
-        w++;
+  //       c = fgetc(in);
+  //       w++;
 
-        if(c == EOF){
-            *w = '\0';
-            return 1;
-        }
-    }
-    *w = '\0';
+  //       if(c == EOF){
+  //           *w = '\0';
+  //           return 1;
+  //       }
+  //   }
+  //   *w = '\0';
+  //   return 1;
+  int ch;
+  int count = 0;
+  if (!in || !w) return 0;
+
+  while ((ch = fgetc(in)) != EOF && wc_isspace(ch));
+
+  if (ch == EOF) return 0;
+
+  ungetc(ch, in);
+
+  while ((ch = fgetc(in)) != EOF && !wc_isspace(ch) && count < MAX_WORDLEN) {
+    w[count++] = ch;
+  }
+
+  w[count] = '\0';
+
+  if (count > 0) {
     return 1;
+  }
+  return 0;
 }
 
 // Convert the NUL-terminated character string in the array
@@ -184,7 +204,6 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
   while (temp != NULL) {
       if (wc_str_compare((const unsigned char *)temp->word, (const unsigned char *)s) == 0) {
           *inserted = 0;
-          temp->count++;
           return temp;
       }
       temp = temp->next;

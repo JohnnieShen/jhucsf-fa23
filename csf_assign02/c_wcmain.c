@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "wcfuncs.h"
 
 // Suggested number of buckets for the hash table
@@ -12,12 +13,12 @@ int main(int argc, char **argv) {
   // stats (to be printed at end)
   uint32_t total_words = 0;
   uint32_t unique_words = 0;
-  const unsigned char *best_word = (const unsigned char *) "";
+  unsigned char *best_word = (unsigned char *) "";
   uint32_t best_word_count = 0;
 
   // TODO: implement
   struct WordEntry *bucket[HASHTABLE_SIZE] = {NULL};
-  struct WordEntry temp;
+  struct WordEntry *temp;
   fp = fopen(argv[1],"r");
   unsigned char *w = malloc(MAX_WORDLEN + 1);
   int uniqueWords = 0;
@@ -33,23 +34,23 @@ int main(int argc, char **argv) {
   }
 
   for (int i = 0; i < HASHTABLE_SIZE; i++) { 
-     if (bucket[i] != NULL) {
-     }
+    if (bucket[i] != NULL) {
+      temp = bucket[i];
+      unique_words++;
+      if (best_word_count < temp->count) {
+        best_word_count = temp->count;
+        wc_str_copy(best_word,temp->word);
+      }
+       while(temp != NULL) {
+        unique_words++;
+        if (best_word_count < temp->count) {
+          best_word_count = temp->count;
+          wc_str_copy(best_word,temp->word);
+        }
+        temp = temp->next;
+      }
+    }
   }
-
-  // int count = 0;
-  // for (int i = 0; i < HASHTABLE_SIZE; i++) { 
-  //   if (bucket[i] != NULL) {
-  //     temp = *bucket[i];
-  //     while(temp != NULL){
-  //       count++;
-  //       temp = temp -> next;
-  //     }
-  //   }
-  // }
-
-
-  
 
   printf("Total words read: %u\n", (unsigned int) total_words);
   printf("Unique words read: %u\n", (unsigned int) unique_words);

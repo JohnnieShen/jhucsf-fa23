@@ -15,12 +15,12 @@
 #define WORDENTRY_NEXT_OFFSET   (MAX_WORDLEN+1+4+4)
 
     .section .rodata
-//    sSpace: .string " "
-//    sTab: .string "\t"
-//    sLine: .string "\n"
-//    sR: .string "\r"
-//    sF: .string "\f"
-//    sV: .string "\v"
+    sSpace: .string " "
+    sTab: .string "\t"
+    sLine: .string "\n"
+    sR: .string "\r"
+    sF: .string "\f"
+    sV: .string "\v"
 /* Define any string constants or read-only data here */
 
 	.section .text
@@ -64,27 +64,61 @@ wc_hash:
  */
 	.globl wc_str_compare
 wc_str_compare:
-//    jmp     .L2
-//.L3:
-//    addq    $1, %rdi
-//    addq    $1, %rsi
-//.L2:
-//    movzbl  (%rdi), %eax
-//    testb   %al, %al
-//    je      .L5
-//    movzbl  (%rsi), %edx
-//    testb   %dl, %dl
-//    je      .L5
-//    cmpb    %dl, %al
-//    je      .L3
-//    movzbl  %al, %eax
-//    movzbl  %dl, %edx
-//    subl    %edx, %eax
-//    ret
-//.L5:
-//    movzbl  %al, %eax
-//    movzbl  (%rsi), %edx
-//    subl    %edx, %eax
+    //allocate the memory
+    subq $8, %rsp
+
+    //initialize the two strings to %rax and %rcx for comparison
+    movq %rdi, %rax
+    movq %rsi, %rcx
+.Loop:
+    movzbl (%rax), %edx
+    movzbl (%rcx), %ebx
+
+    //compare null to the left side
+    cmp $0, %edx
+    je .LeftNull
+
+    //if left is not null and right is null, right must be smaller
+    cmp $0, %ebx
+    je .LeftGreater
+
+    cmp %edx, %ebx
+    je .nextChar
+
+    //if ebx is less than edx, the right hand side is smaller, we return 1
+    cmp %edx, %ebx
+    jl .LeftGreater
+
+    //if edx is greater than ebx, the left hand side is smaller, we return -1
+    cmp %edx, %ebx
+    jg .RightGreater
+
+.nextChar:
+    inc %rax
+    inc %rcx
+    //loop again
+    jmp .Loop
+
+
+.LeftNull:
+    //if right side is null as well, it is equal, otherwise left is smaller
+    cmp $0, %ebx
+    je .Equal
+    jmp .RightGreater
+
+.LeftGreater:
+    movl $1, %eax
+    addq $8, %rsp
+    ret
+
+.RightGreater:
+    movl $-1, %eax
+    addq $8, %rsp
+    ret
+
+.Equal:
+    movl $0, %eax
+    addq $8, %rsp
     ret
 
 /*
@@ -116,60 +150,32 @@ wc_str_copy:
  */
 	.globl wc_isspace
 wc_isspace:
-//    subq $8, %rsp
-//    //get the input parameter, often stored in the %dil pointer
-//    cmp %dil, sSpace
-//    je .isSpace
-//    cmp %dil, sTab
-//    je .isSpace
-//    cmp %dil, sLine
-//    je .isSpace
-//    cmp %dil, sF
-//    je .isSpace
-//    cmp %dil, sR
-//    je .isSpace
-//    cmp %dil, sV
-//
-//    movl $0, %eax
-//    addq $8, %rsp
-//    ret
-//
-//.isSpace:
-//   movl $1, %eax
-//   addq $8, %rsp
-//   ret
+    subq $8, %rsp
+    //get the input parameter, often stored in the %dil pointer
+    cmp %dil, sSpace //check if it is equal to ' '
+    je .isSpace
+    cmp %dil, sTab //check if it is equal to '\t'
+    je .isSpace
+    cmp %dil, sLine //check if it is equal to '\n'
+    je .isSpace
+    cmp %dil, sF //check if it is equal to '\f'
+    je .isSpace
+    cmp %dil, sR //check if it is equal to '\r'
+    je .isSpace
+    cmp %dil, sV //check if it is equal to '\v'
+    je .isSpace
+
+    //otherwise it is not a space, return 0 and free the memory
+    movl $0, %eax
+    addq $8, %rsp
     ret
 
+.isSpace:
+    //if it is space, return 1 and free the memory
+   movl $1, %eax
+   addq $8, %rsp
+   ret
 
-
-//    cmpb    $32, %dil
-//    sete    %dl
-//    cmpb    $9, %dil
-//    sete    %al
-//    orb     %al, %dl
-//    jne     .L3
-//    cmpb    $13, %dil
-//    sete    %al
-//    cmpb    $10, %dil
-//    sete    %dl
-//    testb   %al, %al
-//    jne     .L4
-//    testb   %dl, %dl
-//    jne     .L4
-//    subl    $11, %edi
-//    cmpb    $1, %dil
-//    jbe     .L5
-//    movl    $0, %eax
-//    ret
-//.L3:
-//    movl    $1, %eax
-//    ret
-//.L4:
-//    movl    $1, %eax
-//    ret
-//.L5:
-//    movl    $1, %eax
-//    ret
 
 /*
  * Return 1 if the character code in c is an alphabetic character
@@ -180,19 +186,52 @@ wc_isspace:
  */
 	.globl wc_isalpha
 wc_isalpha:
-//    leal    -65(%rdi), %eax
-//    cmpb    $25, %al
-//    setbe   %dl
-//    subl    $97, %edi
-//    cmpb    $25, %dil
-//    setbe   %al
-//    orb     %al, %dl
-//    jne     .L3
-//    movl    $0, %eax
-//    ret
-//.L3:
-//    movl    $1, %eax
+    //allocate memory for the function
+    subq $8, %rsp
+
+    //we first compare the value of the character, if it is greater equal to 'a'. It must be a lowercase character or not a
+    //character, we then check if it's less equal to 'z'
+    cmpb $'a', %dil
+    jge .LowerCaseLetter
+    //jump to check if it's lowercase letter or not
+
+    //we reach here is the character is less than 'a'. It must be an uppercase letter or not an letter. We check if it is
+    //in between 'A' and 'Z'
+    cmpb $'A', %dil
+    jge .UpperCaseLetter
+
+    //return 0 and free back the memory if it is less than 'A', meaning it is not a character
+    movl $0, %eax
+    addq $8, %rsp
     ret
+
+
+.UpperCaseLetter:
+    //we compare if it is an uppercase letter. If it is less equal to 'Z', this means it is alphabetical
+    cmpb $'Z', %dil
+    jle .IsAlpha
+
+    //return 0 and free back the memory if it is greater than 'Z', meaning it is not in the alphabet
+    movl $0, %eax
+    addq $8, %rsp
+    ret
+
+.LowerCaseLetter:
+    //we compare if it is an uppercase letter. If it is less equal to 'z', this means it is alphabetical
+    cmpb $'z', %dil
+    jle .IsAlpha
+
+    //return 0 and free back the memory if it is greater than 'z', meaning it is not in the alphabet
+    movl $0, %eax
+    addq $8, %rsp
+    ret
+
+.IsAlpha:
+    //return 1 and free back the memory if it is alphabetical
+    movl $1, %eax
+    addq $8, %rsp
+    ret
+
 
 /*
  * Read the next word from given input stream, storing

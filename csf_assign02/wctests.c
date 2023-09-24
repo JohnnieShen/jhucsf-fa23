@@ -123,7 +123,6 @@ void test_hash(TestObjs *objs) {
 }
 
 void test_str_compare(TestObjs *objs) {
-  printf("%d", wc_str_compare("high", "hi"));
   ASSERT(wc_str_compare(objs->test_str_1, objs->test_str_1) == 0);
   ASSERT(wc_str_compare(objs->test_str_1, objs->test_str_4) < 0);
   ASSERT(wc_str_compare(objs->test_str_4, objs->test_str_1) > 0);
@@ -139,10 +138,18 @@ void test_str_copy(TestObjs *objs) {
 
   wc_str_copy(buf, objs->test_str_1);
   ASSERT(0 == strcmp((const char *) objs->test_str_1, (const char *) buf));
+  ASSERT(0 == strcmp((const char *) objs->test_str_1, (const char *) buf));
+  ASSERT(0 == strcmp((const char *) objs->test_str_1, (const char *) buf));
+  ASSERT(0 == strcmp((const char *) objs->test_str_1, (const char *) buf));
 
-  ASSERT(0 == strcmp((const char *) objs->test_str_1, (const char *) buf));
-  ASSERT(0 == strcmp((const char *) objs->test_str_1, (const char *) buf));
-  ASSERT(0 == strcmp((const char *) objs->test_str_1, (const char *) buf));
+
+  wc_str_copy(buf, "happyPants");
+  ASSERT(0 == strcmp((const char *) "happyPants", (const char *) buf));
+  wc_str_copy(buf, "IdoVeryLoveU520");
+  ASSERT(0 == strcmp((const char *) "IdoVeryLoveU520", (const char *) buf));
+  wc_str_copy(buf, "haveIBeenSingleFor18Years");
+  ASSERT(0 == strcmp((const char *) "haveIBeenSingleFor18Years", (const char *) buf));
+
 }
 
 void test_isspace(TestObjs *objs) {
@@ -155,6 +162,14 @@ void test_isspace(TestObjs *objs) {
   ASSERT(0 == wc_isspace('a'));
   ASSERT(0 == wc_isspace('.'));
   ASSERT(0 == wc_isspace('*'));
+
+  ASSERT(1 == wc_isspace('\f'));
+  ASSERT(1 == wc_isspace('\v'));
+
+  ASSERT(0 == wc_isspace('L'));
+  ASSERT(0 == wc_isspace('O'));
+  ASSERT(0 == wc_isspace('V'));
+  ASSERT(0 == wc_isspace('E'));
 }
 
 void test_isalpha(TestObjs *objs) {
@@ -166,6 +181,15 @@ void test_isalpha(TestObjs *objs) {
 
   ASSERT(0 == wc_isalpha('0'));
   ASSERT(0 == wc_isalpha(','));
+
+  ASSERT(0 == wc_isalpha('5'));
+  ASSERT(0 == wc_isalpha('2'));
+  ASSERT(0 == wc_isalpha('!'));
+
+  ASSERT(1 == wc_isalpha('l'));
+  ASSERT(1 == wc_isalpha('O'));
+  ASSERT(1 == wc_isalpha('V'));
+  ASSERT(1 == wc_isalpha('e'));
 }
 
 void test_readnext(TestObjs *objs) {

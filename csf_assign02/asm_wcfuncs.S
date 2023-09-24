@@ -9,11 +9,18 @@
  * (Note that there is 4 bytes of padding between the count and next
  * fields.)
  */
+
 #define WORDENTRY_WORD_OFFSET   (0)
 #define WORDENTRY_COUNT_OFFSET  (MAX_WORDLEN+1)
 #define WORDENTRY_NEXT_OFFSET   (MAX_WORDLEN+1+4+4)
 
-	.section .rodata
+    .section .rodata
+//    sSpace: .string " "
+//    sTab: .string "\t"
+//    sLine: .string "\n"
+//    sR: .string "\r"
+//    sF: .string "\f"
+//    sV: .string "\v"
 /* Define any string constants or read-only data here */
 
 	.section .text
@@ -57,27 +64,27 @@ wc_hash:
  */
 	.globl wc_str_compare
 wc_str_compare:
-    jmp     .L2
-.L3:
-    addq    $1, %rdi
-    addq    $1, %rsi
-.L2:
-    movzbl  (%rdi), %eax
-    testb   %al, %al
-    je      .L5
-    movzbl  (%rsi), %edx
-    testb   %dl, %dl
-    je      .L5
-    cmpb    %dl, %al
-    je      .L3
-    movzbl  %al, %eax
-    movzbl  %dl, %edx
-    subl    %edx, %eax
-    ret
-.L5:
-    movzbl  %al, %eax
-    movzbl  (%rsi), %edx
-    subl    %edx, %eax
+//    jmp     .L2
+//.L3:
+//    addq    $1, %rdi
+//    addq    $1, %rsi
+//.L2:
+//    movzbl  (%rdi), %eax
+//    testb   %al, %al
+//    je      .L5
+//    movzbl  (%rsi), %edx
+//    testb   %dl, %dl
+//    je      .L5
+//    cmpb    %dl, %al
+//    je      .L3
+//    movzbl  %al, %eax
+//    movzbl  %dl, %edx
+//    subl    %edx, %eax
+//    ret
+//.L5:
+//    movzbl  %al, %eax
+//    movzbl  (%rsi), %edx
+//    subl    %edx, %eax
     ret
 
 /*
@@ -109,34 +116,60 @@ wc_str_copy:
  */
 	.globl wc_isspace
 wc_isspace:
-    cmpb    $32, %dil
-    sete    %dl
-    cmpb    $9, %dil
-    sete    %al
-    orb     %al, %dl
-    jne     .L3
-    cmpb    $13, %dil
-    sete    %al
-    cmpb    $10, %dil
-    sete    %dl
-    testb   %al, %al
-    jne     .L4
-    testb   %dl, %dl
-    jne     .L4
-    subl    $11, %edi
-    cmpb    $1, %dil
-    jbe     .L5
-    movl    $0, %eax
+//    subq $8, %rsp
+//    //get the input parameter, often stored in the %dil pointer
+//    cmp %dil, sSpace
+//    je .isSpace
+//    cmp %dil, sTab
+//    je .isSpace
+//    cmp %dil, sLine
+//    je .isSpace
+//    cmp %dil, sF
+//    je .isSpace
+//    cmp %dil, sR
+//    je .isSpace
+//    cmp %dil, sV
+//
+//    movl $0, %eax
+//    addq $8, %rsp
+//    ret
+//
+//.isSpace:
+//   movl $1, %eax
+//   addq $8, %rsp
+//   ret
     ret
-.L3:
-    movl    $1, %eax
-    ret
-.L4:
-    movl    $1, %eax
-    ret
-.L5:
-    movl    $1, %eax
-    ret
+
+
+
+//    cmpb    $32, %dil
+//    sete    %dl
+//    cmpb    $9, %dil
+//    sete    %al
+//    orb     %al, %dl
+//    jne     .L3
+//    cmpb    $13, %dil
+//    sete    %al
+//    cmpb    $10, %dil
+//    sete    %dl
+//    testb   %al, %al
+//    jne     .L4
+//    testb   %dl, %dl
+//    jne     .L4
+//    subl    $11, %edi
+//    cmpb    $1, %dil
+//    jbe     .L5
+//    movl    $0, %eax
+//    ret
+//.L3:
+//    movl    $1, %eax
+//    ret
+//.L4:
+//    movl    $1, %eax
+//    ret
+//.L5:
+//    movl    $1, %eax
+//    ret
 
 /*
  * Return 1 if the character code in c is an alphabetic character
@@ -147,18 +180,18 @@ wc_isspace:
  */
 	.globl wc_isalpha
 wc_isalpha:
-    leal    -65(%rdi), %eax
-    cmpb    $25, %al
-    setbe   %dl
-    subl    $97, %edi
-    cmpb    $25, %dil
-    setbe   %al
-    orb     %al, %dl
-    jne     .L3
-    movl    $0, %eax
-    ret
-.L3:
-    movl    $1, %eax
+//    leal    -65(%rdi), %eax
+//    cmpb    $25, %al
+//    setbe   %dl
+//    subl    $97, %edi
+//    cmpb    $25, %dil
+//    setbe   %al
+//    orb     %al, %dl
+//    jne     .L3
+//    movl    $0, %eax
+//    ret
+//.L3:
+//    movl    $1, %eax
     ret
 
 /*

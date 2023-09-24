@@ -118,6 +118,7 @@ void test_hash(TestObjs *objs) {
 }
 
 void test_str_compare(TestObjs *objs) {
+  printf("%d", wc_str_compare("high", "hi"));
   ASSERT(wc_str_compare(objs->test_str_1, objs->test_str_1) == 0);
   ASSERT(wc_str_compare(objs->test_str_1, objs->test_str_4) < 0);
   ASSERT(wc_str_compare(objs->test_str_4, objs->test_str_1) > 0);

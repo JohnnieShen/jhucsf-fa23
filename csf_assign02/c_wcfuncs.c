@@ -40,14 +40,16 @@ uint32_t wc_hash(const unsigned char *w) {
 // of the other, it is considered as "less than". E.g.,
 // "hi" would compare as less than "high".
 int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs) {
-  while (*lhs && *rhs) {
-    if (*lhs != *rhs) {
-      return *lhs - *rhs;
+    while (*lhs && *rhs) {
+        if (*lhs < *rhs) return -1;
+        if (*lhs > *rhs) return 1;
+        lhs++;
+        rhs++;
     }
-    lhs++;
-    rhs++;
-  }
-  return *lhs - *rhs;
+
+    if (*lhs) return 1;   // lhs is longer
+    if (*rhs) return -1;  // rhs is longer
+    return 0;
 }
 
 // Copy NUL-terminated source string to the destination buffer.
@@ -170,6 +172,7 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
   while (temp != NULL) {
       if (wc_str_compare((const unsigned char *)temp->word, (const unsigned char *)s) == 0) {
           *inserted = 0;
+          temp->count++;
           return temp;
       }
       temp = temp->next;

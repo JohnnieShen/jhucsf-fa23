@@ -24,7 +24,24 @@ int main(int argc, char **argv) {
     total_words++;
     wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
   }
-  
+
+  for (int i = 0; i < HASHTABLE_SIZE; i++) { 
+     if (bucket[i] != NULL) {
+     }
+  }
+
+  // int count = 0;
+  // for (int i = 0; i < HASHTABLE_SIZE; i++) { 
+  //   if (bucket[i] != NULL) {
+  //     temp = *bucket[i];
+  //     while(temp != NULL){
+  //       count++;
+  //       temp = temp -> next;
+  //     }
+  //   }
+  // }
+
+
   
 
   printf("Total words read: %u\n", (unsigned int) total_words);

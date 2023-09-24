@@ -52,7 +52,7 @@ int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs) {
 
 // Copy NUL-terminated source string to the destination buffer.
 void wc_str_copy(unsigned char *dest, const unsigned char *source) {
-  while (*source) {
+  while (*source != '\0' && *source != NULL) {
     *dest = *source;
     dest++;
     source++;
@@ -202,7 +202,7 @@ void wc_trim_non_alpha(unsigned char *w) {
 struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char *s, int *inserted) {
   struct WordEntry *temp = head;
   while (temp != NULL) {
-      if (wc_str_compare((const unsigned char *)temp->word, (const unsigned char *)s) == 0) {
+      if (wc_str_compare((const unsigned char *)temp->word, (const unsigned char *)s) == 0 && temp != NULL) {
           *inserted = 0;
           return temp;
       }

@@ -9,23 +9,28 @@
 // TODO: prototypes for helper functions
 
 int main(int argc, char **argv) {
-  FILE *fp;
+  FILE *fp = NULL;
   // stats (to be printed at end)
   uint32_t total_words = 0;
   uint32_t unique_words = 0;
-  unsigned char *best_word = (unsigned char *) "";
+  unsigned char best_word[MAX_WORDLEN +1] = {'\0'};
   uint32_t best_word_count = 0;
 
-  // TODO: implement
   struct WordEntry *bucket[HASHTABLE_SIZE] = {NULL};
   struct WordEntry *temp;
   fp = fopen(argv[1],"r");
+  if(fp == NULL) {
+    printf("no file");
+    return 0;
+  }
   unsigned char *w = malloc(MAX_WORDLEN + 1);
   while(wc_readnext(fp, w)){
+    wc_trim_non_alpha(w);
+    wc_tolower(w);
     total_words++;
-    wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
+    temp = wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
+    ++temp->count;
   }
-
   for (int i = 0; i < HASHTABLE_SIZE; i++) { 
     if (bucket[i] != NULL) {
       temp = bucket[i];
@@ -34,13 +39,13 @@ int main(int argc, char **argv) {
         best_word_count = temp->count;
         wc_str_copy(best_word,temp->word);
       }
-       while(temp != NULL) {
+       while(temp->next != NULL) {
+        temp = temp->next;
         unique_words++;
         if (best_word_count < temp->count) {
           best_word_count = temp->count;
           wc_str_copy(best_word,temp->word);
         }
-        temp = temp->next;
       }
     }
   }

@@ -285,7 +285,6 @@ void test_dict_find_or_insert(TestObjs *objs) {
   ASSERT(dict[2] == NULL);
   ASSERT(dict[3] == NULL);
   ASSERT(dict[4] == NULL);
-  printf("%d\n\n\n",p->count);
   ASSERT(p->count == 1);
   ++p->count;
 

@@ -20,9 +20,16 @@ int main(int argc, char **argv) {
   struct WordEntry temp;
   fp = fopen(argv[1],"r");
   unsigned char *w = malloc(MAX_WORDLEN + 1);
+  int uniqueWords = 0;
   while(wc_readnext(fp, w)){
     total_words++;
-    wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
+    temp = wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
+    if(temp->count == 0){
+      uniqueWords++;
+    }
+    if(temp->count > best_word_count){
+      best_word_count = temp->count;
+      best_word = temp->word;
   }
 
   for (int i = 0; i < HASHTABLE_SIZE; i++) { 

@@ -16,17 +16,28 @@ int main(int argc, char **argv) {
   uint32_t best_word_count = 0;
 
   // TODO: implement
-  struct WordEntry *bucket[HASHTABLE_SIZE];
-
+  struct WordEntry *bucket[HASHTABLE_SIZE] = {NULL};
+  struct WordEntry temp;
   fp = fopen(argv[1],"r");
+  unsigned char *w = malloc(MAX_WORDLEN + 1);
+  while(wc_readnext(fp, w)){
+    total_words++;
+    wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
+  }
   
+  
+
   printf("Total words read: %u\n", (unsigned int) total_words);
   printf("Unique words read: %u\n", (unsigned int) unique_words);
   printf("Most frequent word: %s (%u)\n", (const char *) best_word, best_word_count);
 
   // TODO: make sure file is closed (if one was opened)
   // TODO: make sure memory is freed
-
+  free(w);
+  fclose(fp);
+  for (int i = 0; i < HASHTABLE_SIZE; i++) { 
+    wc_free_chain(bucket[i]);
+  }
   return 0;
 }
 

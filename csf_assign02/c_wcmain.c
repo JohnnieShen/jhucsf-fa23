@@ -26,34 +26,20 @@ int main(int argc, char **argv) {
             perror("no file\n");
             return 1;
         }
-        while(wc_readnext(fp, w)){
-            wc_trim_non_alpha(w);
-            wc_tolower(w);
-            total_words++;
-            temp = wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
-            temp->count++;
-        }
     } else {
         fp = stdin;
-        while(wc_readnext(fp, w)){
-            wc_trim_non_alpha(w);
-            wc_tolower(w);
-            total_words++;
-            temp = wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
-            temp->count++;
-        }
     }
-
-
-
-
+    while(wc_readnext(fp, w)){
+        wc_trim_non_alpha(w);
+        wc_tolower(w);
+        total_words++;
+        temp = wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
+        temp->count++;
+    }
     for (int i = 0; i < HASHTABLE_SIZE; i++) {
         if (bucket[i] != NULL) {
             temp = bucket[i];
             unique_words++;
-            // if (wc_str_compare(temp->word,(const unsigned char *)"dominates") == 0) {
-            //   printf("this\n");
-            // }
             if (best_word_count < temp->count) {
                 best_word_count = temp->count;
                 wc_str_copy(best_word,temp->word);
@@ -61,9 +47,6 @@ int main(int argc, char **argv) {
             while(temp->next != NULL) {
                 temp = temp->next;
                 unique_words++;
-                // if (wc_str_compare(temp->word,(const unsigned char *)"dominates") == 0) {
-                //   printf("this\n");
-                // }
                 if (best_word_count < temp->count) {
                     best_word_count = temp->count;
                     wc_str_copy(best_word,temp->word);
@@ -71,7 +54,6 @@ int main(int argc, char **argv) {
             }
         }
     }
-    //printf("%d\n\n\n",count);
     printf("Total words read: %u\n", (unsigned int) total_words);
     printf("Unique words read: %u\n", (unsigned int) unique_words);
     printf("Most frequent word: %s (%u)\n", (const char *) best_word, best_word_count);

@@ -116,9 +116,9 @@ void test_hash(TestObjs *objs) {
   hash = wc_hash(objs->test_str_1);
   ASSERT(261238937U == hash);
 
-  hash = wc_hash("test");
-  hash = wc_hash("farmer John");
-  hash = wc_hash("testHashing");
+  hash = wc_hash((const unsigned char *)"test");
+  hash = wc_hash((const unsigned char *)"farmer John");
+  hash = wc_hash((const unsigned char *)"testHashing");
 
 }
 
@@ -127,10 +127,10 @@ void test_str_compare(TestObjs *objs) {
   ASSERT(wc_str_compare(objs->test_str_1, objs->test_str_4) < 0);
   ASSERT(wc_str_compare(objs->test_str_4, objs->test_str_1) > 0);
 
-  ASSERT(wc_str_compare("happyPants", "happyPants") == 0);
-  ASSERT(wc_str_compare("happy","happyPants") < 0);
-  ASSERT(wc_str_compare("happypants","happyPants") > 0);
-  ASSERT(wc_str_compare("happyPants", "nappyPant") < 0);
+  ASSERT(wc_str_compare((const unsigned char *)"happyPants", (const unsigned char *)"happyPants") == 0);
+  ASSERT(wc_str_compare((const unsigned char *)"happy",(const unsigned char *)"happyPants") < 0);
+  ASSERT(wc_str_compare((const unsigned char *)"happypants",(const unsigned char *)"happyPants") > 0);
+  ASSERT(wc_str_compare((const unsigned char *)"happyPants", (const unsigned char *)"nappyPant") < 0);
 }
 
 void test_str_copy(TestObjs *objs) {
@@ -143,11 +143,11 @@ void test_str_copy(TestObjs *objs) {
   ASSERT(0 == strcmp((const char *) objs->test_str_1, (const char *) buf));
 
 
-  wc_str_copy(buf, "happyPants");
+  wc_str_copy(buf, (const unsigned char *)"happyPants");
   ASSERT(0 == strcmp((const char *) "happyPants", (const char *) buf));
-  wc_str_copy(buf, "IdoVeryLoveU520");
+  wc_str_copy(buf, (const unsigned char *)"IdoVeryLoveU520");
   ASSERT(0 == strcmp((const char *) "IdoVeryLoveU520", (const char *) buf));
-  wc_str_copy(buf, "haveIBeenSingleFor18Years");
+  wc_str_copy(buf, (const unsigned char *)"haveIBeenSingleFor18Years");
   ASSERT(0 == strcmp((const char *) "haveIBeenSingleFor18Years", (const char *) buf));
 
 }

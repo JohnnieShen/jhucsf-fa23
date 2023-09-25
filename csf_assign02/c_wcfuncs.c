@@ -142,13 +142,15 @@ void wc_trim_non_alpha(unsigned char *w) {
     finalDest--;
 
     unsigned char c;
-    while((c = *finalDest) && finalDest >= w){
+    while((c = *finalDest) && finalDest > w){
         if(wc_isalpha(c)){
             break;
         }
         finalDest--;
     }
-    finalDest++;
+    if(wc_isalpha(*finalDest) == 1) { 
+        finalDest++;
+    }
     *finalDest = '\0';
 }
 

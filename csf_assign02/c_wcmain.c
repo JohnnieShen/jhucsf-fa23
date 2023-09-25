@@ -34,9 +34,14 @@ int main(int argc, char **argv) {
             temp->count++;
         }
     } else {
-        //TODO
-
-
+        fp = stdin;
+        while(wc_readnext(fp, w)){
+            wc_trim_non_alpha(w);
+            wc_tolower(w);
+            total_words++;
+            temp = wc_dict_find_or_insert(bucket,HASHTABLE_SIZE,w);
+            temp->count++;
+        }
     }
 
 

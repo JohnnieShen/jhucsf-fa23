@@ -44,7 +44,17 @@
  */
 	.globl wc_hash
 wc_hash:
-	/* TODO: implement */
+	movq $5381, %rax
+.hash_loop:
+    movzbq (%rdi), %r8
+    cmp $0, %r8
+    je .hash_loop_done
+    imulq $33, %rax
+    addq %r8, %rax
+    inc %rdi
+    jmp .hash_loop
+
+.hash_loop_done:
 	ret
 
 /*
@@ -70,7 +80,7 @@ wc_str_compare:
     //initialize the two strings to %rax and %rcx for comparison
     movq %rdi, %rax
     movq %rsi, %rcx
-.Loop:
+.str_compare_loop:
     movzbl (%rax), %edx
     movzbl (%rcx), %ebx
 
@@ -97,7 +107,7 @@ wc_str_compare:
     inc %rax
     inc %rcx
     //loop again
-    jmp .Loop
+    jmp .str_compare_loop
 
 
 .LeftNull:
@@ -129,7 +139,16 @@ wc_str_compare:
  */
 	.globl wc_str_copy
 wc_str_copy:
-	/* TODO: implement */
+.str_copy_loop:
+    movzbq (%rsi), %r8 //move the current char of source into %r8 
+    test %r8b, %r8b //check if the char is a null
+    je .str_copy_loop_done //jump to loop done
+    mov %r8b, (%rdi) //move the current char to dest
+    inc %rdi //advance in the strings
+    inc %rsi
+    jmp .str_copy_loop 
+.str_copy_loop_done:
+    movq $0, (%rdi) //set the last character of dest to \0
 	ret
 
 /*

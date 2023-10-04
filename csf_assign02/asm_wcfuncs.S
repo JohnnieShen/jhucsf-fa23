@@ -270,6 +270,7 @@ wc_isalpha:
  */
 	.globl wc_readnext
 wc_readnext:
+    subq $8, %rsp
     pushq %r12
 	pushq %r13
     pushq %rbp
@@ -325,6 +326,7 @@ wc_readnext:
     popq %rbp
     popq %r13
     popq %r12
+    addq $8, %rsp
 	ret 
 
 /*
@@ -363,7 +365,37 @@ wc_tolower:
  */
 	.globl wc_trim_non_alpha
 wc_trim_non_alpha:
-	/* TODO: implement */
+    subq $8, %rsp
+    pushq %r12
+    pushq %r13
+	movq %rdi, %r12
+.trim_non_alpha_loop_reach_end:
+    movzbq (%r12), %r8
+    cmpq $0, %r8
+    je .trim_non_alpha_loop_end
+    inc %r12
+    jmp .trim_non_alpha_loop_reach_end
+.trim_non_alpha_loop_end:
+    dec %r12
+    movzbq (%r12), %r13
+    cmpq %rdi, %r12
+    jle .trim_non_alpha_loop_found_last_alpha
+    movq %r13, %rdi
+    call wc_isalpha
+    cmp $1, %rax
+    je .trim_non_alpha_loop_found_last_alpha
+    jmp .trim_non_alpha_loop_end
+.trim_non_alpha_loop_found_last_alpha:
+    movq (%r12), %rdi
+    call wc_isalpha
+    cmp $0, %rax
+    je .trim_non_alpha_end
+    inc %r12
+.trim_non_alpha_end:
+    movq $0, (%r12)
+    popq %r13
+    popq %r12
+    addq $8, %rsp
 	ret
 
 /*

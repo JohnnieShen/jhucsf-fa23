@@ -270,8 +270,23 @@ wc_isalpha:
  */
 	.globl wc_readnext
 wc_readnext:
-	/* TODO: implement */
-	ret
+    pushq %r12
+	pushq %r13
+    subq $8, %rsp
+.readnext_loop_first:
+    call fgetc
+    movq %rax, %r12
+    cmpq $EOF, %rax
+    je .readnext_loop_done
+    pushq %rdi
+    movq %rax, %rdi
+    call wc_isspace
+    popq %rdi
+    cmpq $1, %rax
+    je .readnext_loop_first
+    cmpq $EOF, %r12
+
+	ret 
 
 /*
  * Convert the NUL-terminated character string in the array
@@ -282,7 +297,22 @@ wc_readnext:
  */
 	.globl wc_tolower
 wc_tolower:
-	/* TODO: implement */
+.tolower_loop:
+    movzbq (%rdi), %r8
+    cmpq $0, %r8
+    je .tolower_loop_done
+    cmpq $65, %r8
+	jl .tolower_loop_advance
+	cmpq $90, %r8
+	jg .tolower_loop_advance
+    addq $32, %r8
+	movb %r8b, (%rdi)
+
+.tolower_loop_advance:
+	incq %rdi
+	jmp .tolower_loop
+
+.tolower_loop_done:
 	ret
 
 /*
@@ -344,7 +374,18 @@ wc_dict_find_or_insert:
  */
 	.globl wc_free_chain
 wc_free_chain:
-	/* TODO: implement */
+    subq $8, %rsp
+	cmpq $0, %rdi
+    je .free_chain_loop_done
+.free_chain_loop:
+    movq (%rdi), %rax
+    movq WORDENTRY_NEXT_OFFSET(%rdi), %r8
+    call free
+    movq %r8, %rdi
+    cmpq $0, %rdi
+    je .free_chain_loop
+.free_chain_loop_done:
+    addq $8, %rsp
 	ret
 
 /*

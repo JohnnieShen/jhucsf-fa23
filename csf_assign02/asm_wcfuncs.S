@@ -272,20 +272,59 @@ wc_isalpha:
 wc_readnext:
     pushq %r12
 	pushq %r13
-    subq $8, %rsp
-.readnext_loop_first:
+    pushq %rbp
+    pushq %rbx
+    movq $0, %r13
+    movq %rdi, %rbp
+    movq %rsi, %rbx
+    cmpq $0, %rdi
+    je .readnext_0_character_word
+.readnext_loop_first_character:
     call fgetc
-    movq %rax, %r12
-    cmpq $EOF, %rax
-    je .readnext_loop_done
+    movl %eax, %r12d
+    cmpl $-1, %r12d //check if the first character is EOF
+    je .readnext_loop_done //terminate the function
+    pushq %rdi
+    movq %rax, %rdi
+    call wc_isspace //check if the first character is space
+    popq %rdi
+    cmpl $1, %eax
+    je .readnext_loop_first_character //restart loop until the first character is space
+    movl %r12d, (%rbx) //put the character into array
+    inc %rbx //increase array pointer
+    inc %r13 //increase word length counter
+.readnext_loop_read_word:
+    cmpq $MAX_WORDLEN, %r13
+    jge .readnext_loop_word_end //reached length limit
+    movq %rbp, %rdi
+    call fgetc
+    movl %eax, %r12d
+    cmpl $-1, %r12d
+    je .readnext_loop_word_end //word is completely read, reached EOF
     pushq %rdi
     movq %rax, %rdi
     call wc_isspace
     popq %rdi
-    cmpq $1, %rax
-    je .readnext_loop_first
-    cmpq $EOF, %r12
-
+    cmpl $1, %eax
+    je .readnext_loop_word_end //word is completely read, reached space
+    movl %r12d, (%rbx)
+    inc %rbx
+    inc %r13
+    jmp .readnext_loop_read_word 
+.readnext_loop_word_end:
+    movb $0, (%rbx) //add null terminator
+.readnext_loop_done:
+    cmpq $0, %r13
+    je .readnext_0_character_word
+    movq $1, %rax
+    jmp .readnext_end
+.readnext_0_character_word:
+    movq $0, %rax
+.readnext_end:
+    popq %rbx
+    popq %rbp
+    popq %r13
+    popq %r12
 	ret 
 
 /*

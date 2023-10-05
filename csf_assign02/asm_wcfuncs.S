@@ -13,6 +13,7 @@
 #define WORDENTRY_WORD_OFFSET   (0)
 #define WORDENTRY_COUNT_OFFSET  (MAX_WORDLEN+1)
 #define WORDENTRY_NEXT_OFFSET   (MAX_WORDLEN+1+4+4)
+#define WORDENTRY_SIZE          (WORDENTRY_NEXT_OFFSET+8)
 
     .section .rodata
     sSpace: .string " "
@@ -117,17 +118,17 @@ wc_str_compare:
     jmp .RightGreater
 
 .LeftGreater:
-    movl $1, %eax
+    movq $1, %rax
     addq $8, %rsp
     ret
 
 .RightGreater:
-    movl $-1, %eax
+    movq $-1, %rax
     addq $8, %rsp
     ret
 
 .Equal:
-    movl $0, %eax
+    movq $0, %rax
     addq $8, %rsp
     ret
 
@@ -420,28 +421,28 @@ wc_trim_non_alpha:
  */
 	.globl wc_find_or_insert
 wc_find_or_insert:
+    subq $8 , %rsp
     pushq %r12
     pushq %r13
     pushq %rbp
     pushq %rbx
-    pushq %r14
+    pushq %r15
+    //
 
-    //movq %rdi, %r8 head pointer
-    //movq %rdx, %r9 inserted value
-    //movq %rsi, %r10 String value
 
     movq %rdi, %r12
-    movq %r12, %r14
+    movq %rdi, %r15
     movq %rdx, %r13
     movq %rsi, %rbp
 
 .find_or_insert_loop:
     test %r12, %r12
-    je .find_or_insert_addNew //we looped through all the entries and the inserted element is not found
+    jz .find_or_insert_addNew //we looped through all the entries and the inserted element is not found
+
     movq %rbp, %rdi
     movq %r12, %rsi
     call wc_str_compare
-    cmpq $0, %rax //0 is returned meaning equal
+    cmp $0, %rax //0 is returned meaning equal
     je .find_or_insert_found
 
     movq WORDENTRY_NEXT_OFFSET(%r12), %r12
@@ -454,29 +455,31 @@ wc_find_or_insert:
     jmp .find_or_insert_return
 
 .find_or_insert_addNew:
-    movq $(MAX_WORDLEN + 1 + 4 + 8), %rdi
+    movq $(WORDENTRY_SIZE), %rdi
     call malloc //allocate new space for memory
     test %rax, %rax                       // Check if malloc returned NULL
     je .find_or_insert_return
 
     movq %rax, %rbx
-
     movq %rbx, %rdi
     movq %rbp, %rsi
     call wc_str_copy
 
-    movq %r14, WORDENTRY_NEXT_OFFSET(%rbx)
     movq $0, WORDENTRY_COUNT_OFFSET(%rbx)
+    movq %r15, WORDENTRY_NEXT_OFFSET(%rbx)
     //now new node points to head
     movl $1, (%r13) //inserted is 1
     movq %rbx, %rax
+
 .find_or_insert_return:
-    popq %r14
+    popq %r15
     popq %rbx
     popq %rbp
     popq %r13
     popq %r12
-	ret
+
+    addq $8, %rsp
+    ret
 
 /*
  * Find or insert the WordEntry object for the given string (s), returning
@@ -492,41 +495,53 @@ wc_find_or_insert:
  */
 	.globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-    subq $8 , %rsp
+    subq $8, %rsp
+    pushq %r12
+    pushq %r13
+    pushq %rbp
+    pushq %rbx
+    pushq %r15
 
-    movq %rdi, %r8 //head pointer
-    movq %rdx, %r9 //inserted value
-    movq %rsi, %r10 //String value
+    movq %rdi, %r12
+    movq %rsi, %rbp
+    movq %rdx, %r13
 
-.dict_find_or_insert_loop:
-    cmp $0, %r8
-            je .dict_find_or_insert_found_addNew //we looped through all the entries and the inserted element is not found
+    //find hashcode
+    movq %r13, %rdi
+    call wc_hash
 
-    movq %r10, %rdi
-            movq (%r8), %rsi
-            call wc_str_compare
-            cmp $0, %eax //0 is returned meaning equal
-    je .dict_find_or_insert_found
+    movq %rax, %rbx
+    //entire hashcode stored in %rbx
+
+    movq %rbp, %rcx
+    xorq %rdx, %rdx
+    divq %rcx
+    //divided by the number of bins to store the hashcode back in the remainder
+
+    movq %rdx, %rbx
 
 
-.dict_find_or_insert_found:
-    movq $0, %r9 //inserted is then 0
-    movq %r8, %rax //return found value
-    jmp .dict_find_or_insert_found_return
+    movq (%r12, %rbx, 8), %rdi
+    movq %r13, %rsi
+    movq %r15, %rdx  //r15 used to store the inserted flag
+    movl $0, (%rdx)
 
-.dict_find_or_insert_found_addNew:
-    movq $16, %rdi
-            call malloc //allocate new space for memory
-    movq %r10, (%rax)
-    movq %r8, 8(%rax) //offset is 8
-    //now new node points to head
-    movq %rax, %r8 //return new head
-    movq $1, %r9 //inserted is 1
+call wc_find_or_insert
+    cmp $0, %r15 //if returned 0, meaning it is found
+    je .wc_dict_end
 
-.dict_find_or_insert_found_return:
+    movq %rax, (%r12, %rbx, 8) //add new element
+
+.wc_dict_end:
+    movq (%r12, %rbx, 8), %rax
+
+    popq %r15
+    popq %rbx
+    popq %rbp
+    popq %r13
+    popq %r12
+
     addq $8, %rsp
-
-
 	ret
 
 /*

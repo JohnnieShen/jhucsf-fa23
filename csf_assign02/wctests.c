@@ -252,8 +252,6 @@ void test_find_or_insert(TestObjs *objs) {
 
   p = wc_find_or_insert(list, (const unsigned char *) "avis", &inserted);
 
-  printf("word: %s\n", (const char *) p->word);
-
   ASSERT(1 == inserted);
   list = p;
   ASSERT(p != NULL);
@@ -270,16 +268,14 @@ void test_find_or_insert(TestObjs *objs) {
   ++p->count;
 
   p = wc_find_or_insert(list, (const unsigned char *) "avis", &inserted);
-
-  printf("\n%d\n", inserted);
-
   ASSERT(0 == inserted);
   ASSERT(p != NULL);
   ASSERT(0 == strcmp("avis", (const char *) p->word));
   ASSERT(1 == p->count);
   ++p->count;
 
-  p = wc_find_or_insert(list, (const unsigned char *) "ax's", &inserted);
+  p = wc_find_or_insert(list, (const unsigned char *) "ax's", &inserted);  
+
   ASSERT(0 == inserted);
   ASSERT(p != NULL);
   ASSERT(0 == strcmp("ax's", (const char *) p->word));

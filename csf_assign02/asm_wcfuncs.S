@@ -281,16 +281,19 @@ wc_readnext:
     cmpq $0, %rdi
     je .readnext_0_character_word
 .readnext_loop_first_character:
+    pushq %rdi
+    movq %rbp, %rdi
     call fgetc
+    popq %rdi
     movl %eax, %r12d
     cmpl $-1, %r12d //check if the first character is EOF
     je .readnext_loop_done //terminate the function
     pushq %rdi
-    movq %rax, %rdi
+    movl %eax, %edi
     call wc_isspace //check if the first character is space
     popq %rdi
     cmpl $1, %eax
-    je .readnext_loop_first_character //restart loop until the first character is space
+    je .readnext_loop_first_character //restart loop until the first character is not space
     movl %r12d, (%rbx) //put the character into array
     inc %rbx //increase array pointer
     inc %r13 //increase word length counter
@@ -535,16 +538,20 @@ wc_dict_find_or_insert:
 	.globl wc_free_chain
 wc_free_chain:
     subq $8, %rsp
-	cmpq $0, %rdi
-    je .free_chain_loop_done
+    pushq %r12
+    pushq %r13
+    movq %rdi, %r12
 .free_chain_loop:
-    movq (%rdi), %rax
-    movq WORDENTRY_NEXT_OFFSET(%rdi), %r8
+    cmpq $0, %r12
+    je .free_chain_loop_done
+    movq %r12, %rdi
+    movq WORDENTRY_NEXT_OFFSET(%r12), %r13
     call free
-    movq %r8, %rdi
-    cmpq $0, %rdi
-    je .free_chain_loop
+    movq %r13, %r12
+    jmp .free_chain_loop
 .free_chain_loop_done:
+    popq %r13
+    popq %r12
     addq $8, %rsp
 	ret
 

@@ -13,6 +13,9 @@ typedef struct {
   const unsigned char *test_str_1_copy;
 
   const unsigned char *words_1;
+  const unsigned char *spacedwords_1;
+  const unsigned char *longwords_1;
+  const unsigned char *empty_word;
 } TestObjs;
 
 // Functions to create and clean up the test fixture object
@@ -72,7 +75,9 @@ TestObjs *setup(void) {
   objs->test_str_1_copy = (const unsigned char *) "hello";
 
   objs->words_1 = (const unsigned char *) "A strong smell of petroleum prevails throughout.";
-
+  objs->spacedwords_1 = (const unsigned char *) "A   strong    smell  of    petroleum  prevails  throughout.";
+  objs->longwords_1 = (const unsigned char *) "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  objs->empty_word = (const unsigned char *) "           ";
   //printf("%u\n", wc_hash("Burris"));
   //printf("%u\n", wc_hash("Burt's"));
 
@@ -197,6 +202,47 @@ void test_readnext(TestObjs *objs) {
   unsigned char buf[MAX_WORDLEN + 1];
 
   in = create_input_file(objs->words_1);
+
+  ASSERT(1 == wc_readnext(in, buf));
+  ASSERT(0 == strcmp("A", (const char *) buf));
+
+  ASSERT(1 == wc_readnext(in, buf));
+  ASSERT(0 == strcmp("strong", (const char *) buf));
+
+  ASSERT(1 == wc_readnext(in, buf));
+  ASSERT(0 == strcmp("smell", (const char *) buf));
+
+  ASSERT(1 == wc_readnext(in, buf));
+  ASSERT(0 == strcmp("of", (const char *) buf));
+
+  ASSERT(1 == wc_readnext(in, buf));
+  ASSERT(0 == strcmp("petroleum", (const char *) buf));
+
+  ASSERT(1 == wc_readnext(in, buf));
+  ASSERT(0 == strcmp("prevails", (const char *) buf));
+
+  ASSERT(1 == wc_readnext(in, buf));
+  ASSERT(0 == strcmp("throughout.", (const char *) buf));
+
+  ASSERT(0 == wc_readnext(in, buf));
+
+  fclose(in);
+
+  in = create_input_file(objs->empty_word);
+  ASSERT(0 == wc_readnext(in, buf));
+  fclose(in);
+
+  in = create_input_file(objs->longwords_1);
+  ASSERT(1 == wc_readnext(in, buf));
+  ASSERT(0 == strcmp("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", (const char *) buf));
+  
+  ASSERT(1 == wc_readnext(in, buf));
+  ASSERT(0 == strcmp("AA", (const char *) buf));
+  
+  ASSERT(0 == wc_readnext(in, buf));
+  fclose(in);
+
+  in = create_input_file(objs->spacedwords_1);
 
   ASSERT(1 == wc_readnext(in, buf));
   ASSERT(0 == strcmp("A", (const char *) buf));

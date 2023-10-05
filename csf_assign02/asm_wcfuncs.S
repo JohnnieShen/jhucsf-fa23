@@ -418,45 +418,60 @@ wc_trim_non_alpha:
 	.globl wc_find_or_insert
 wc_find_or_insert:
 	subq $8 , %rsp
+    pushq %r12
+    pushq %r13
+    pushq %rbp
+    pushq %rbx
 
-    movq %rdi, %r8 //head pointer
-    movq %rdx, %r9 //inserted value
-    movq %rsi, %r10 //String value
+    //movq %rdi, %r8 head pointer
+    //movq %rdx, %r9 inserted value
+    //movq %rsi, %r10 String value
 
-.Loop:
-    cmp $0, %r8
-    je .addNew //we looped through all the entries and the inserted element is not found
+    movq %rdi, %r12
+    movq %rdx, %r13
+    movq %rsi, %rbp
 
-    movq %r10, %rdi
-    movq (%r8), %rsi
+.find_or_insert_loop:
+    test %r12, %r12
+    je .find_or_insert_addNew //we looped through all the entries and the inserted element is not found
+
+    movq %rbp, %rdi
+    movq %r12, %rsi
     call wc_str_compare
-    cmp $0, %eax //0 is returned meaning equal
-    je .Found
+    cmpq $0, %rax //0 is returned meaning equal
+    je .find_or_insert_found
 
-    movq (MAX_WORDLEN + 5)(%r8), %r8
-    jmp .Loop
+    movq WORDENTRY_NEXT_OFFSET(%r12), %r12
+    jmp .find_or_insert_loop
 
 
-.Found:
-    movq $0, (%r9) //inserted is then 0
-    movq %r8, %rax //return found value
-    jmp .Return
+.find_or_insert_found:
+    movq $0, (%r13) //inserted is then 0
+    movq %r12, %rax //return found value
+    jmp .find_or_insert_return
 
-.addNew:
+.find_or_insert_addNew:
     movq $(MAX_WORDLEN + 1 + 4 + 8), %rdi
     call malloc //allocate new space for memory
     test %rax, %rax                       // Check if malloc returned NULL
-    je .Return
+    je .find_or_insert_return
 
-    movq %r10, (%rax)
-    movq $r8, (MAX_WORDLEN + 5)(%rax)
-    movl $0, (MAX_WORDLEN + 1)(%rax)
+    movq %rax, %rbx
+
+    movq %rbx, %rdi
+    movq %rbp, %rsi
+    call wc_str_copy
+
+    movq %r12, WORDENTRY_NEXT_OFFSET(%rbx)
+    movq $0, WORDENTRY_COUNT_OFFSET(%rbx)
     //now new node points to head
-    movq %rax, %r8 //update head
-    movq $1, (%r9) //inserted is 1
-
-.Return:
-    movq %r8, %rax
+    movq $1, (%r13) //inserted is 1
+    movq %rbx, %rax
+.find_or_insert_return:
+    popq %rbx
+    popq %rbp
+    popq %r13
+    popq %r12
     addq $8, %rsp
 	ret
 
@@ -480,23 +495,23 @@ wc_dict_find_or_insert:
     movq %rdx, %r9 //inserted value
     movq %rsi, %r10 //String value
 
-.Loop:
+.dict_find_or_insert_loop:
     cmp $0, %r8
-            je .addNew //we looped through all the entries and the inserted element is not found
+            je .dict_find_or_insert_found_addNew //we looped through all the entries and the inserted element is not found
 
     movq %r10, %rdi
             movq (%r8), %rsi
             call wc_str_compare
             cmp $0, %eax //0 is returned meaning equal
-    je .Found
+    je .dict_find_or_insert_found
 
 
-.Found:
+.dict_find_or_insert_found:
     movq $0, %r9 //inserted is then 0
     movq %r8, %rax //return found value
-    jmp .Return
+    jmp .dict_find_or_insert_found_return
 
-.addNew:
+.dict_find_or_insert_found_addNew:
     movq $16, %rdi
             call malloc //allocate new space for memory
     movq %r10, (%rax)
@@ -505,7 +520,7 @@ wc_dict_find_or_insert:
     movq %rax, %r8 //return new head
     movq $1, %r9 //inserted is 1
 
-.Return:
+.dict_find_or_insert_found_return:
     addq $8, %rsp
 
 

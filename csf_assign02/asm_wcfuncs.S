@@ -417,7 +417,39 @@ wc_trim_non_alpha:
  */
 	.globl wc_find_or_insert
 wc_find_or_insert:
-	/* TODO: implement */
+	subq $8 , %rsp
+
+    movq %rdi, %r8 //head pointer
+    movq %rdx, %r9 //inserted value
+    movq %rsi, %r10 //String value
+
+.Loop:
+    cmp $0, %r8
+    je .addNew //we looped through all the entries and the inserted element is not found
+
+    movq %r10, %rdi
+    movq (%r8), %rsi
+    call wc_str_compare
+    cmp $0, %eax //0 is returned meaning equal
+    je .Found
+
+
+.Found:
+    movq $0, %r9 //inserted is then 0
+    movq %r8, %rax //return found value
+    jmp .Return
+
+.addNew:
+    movq $16, %rdi
+    call malloc //allocate new space for memory
+    movq %r10, (%rax)
+    movq $r8, 8(%rax) //offset is 8
+    //now new node points to head
+    movq %rax, %r8 //return new head
+    movq $1, %r9 //inserted is 1
+
+.Return:
+    addq $8, %rsp
 	ret
 
 /*
@@ -434,7 +466,41 @@ wc_find_or_insert:
  */
 	.globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-	/* TODO: implement */
+    subq $8 , %rsp
+
+    movq %rdi, %r8 //head pointer
+    movq %rdx, %r9 //inserted value
+    movq %rsi, %r10 //String value
+
+.Loop:
+    cmp $0, %r8
+            je .addNew //we looped through all the entries and the inserted element is not found
+
+    movq %r10, %rdi
+            movq (%r8), %rsi
+            call wc_str_compare
+            cmp $0, %eax //0 is returned meaning equal
+    je .Found
+
+
+.Found:
+    movq $0, %r9 //inserted is then 0
+    movq %r8, %rax //return found value
+    jmp .Return
+
+.addNew:
+    movq $16, %rdi
+            call malloc //allocate new space for memory
+    movq %r10, (%rax)
+    movq $r8, 8(%rax) //offset is 8
+    //now new node points to head
+    movq %rax, %r8 //return new head
+    movq $1, %r9 //inserted is 1
+
+.Return:
+    addq $8, %rsp
+
+
 	ret
 
 /*

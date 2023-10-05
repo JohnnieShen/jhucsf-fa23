@@ -244,12 +244,16 @@ void test_trim_non_alpha(TestObjs *objs) {
 void test_find_or_insert(TestObjs *objs) {
   (void) objs;
 
+  fflush(stdout);
   struct WordEntry *list = NULL;
   int inserted;
 
   struct WordEntry *p;
 
   p = wc_find_or_insert(list, (const unsigned char *) "avis", &inserted);
+
+  printf("inserted: %d\n", inserted);
+
   ASSERT(1 == inserted);
   list = p;
   ASSERT(p != NULL);

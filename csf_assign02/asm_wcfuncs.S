@@ -433,22 +433,30 @@ wc_find_or_insert:
     cmp $0, %eax //0 is returned meaning equal
     je .Found
 
+    movq (MAX_WORDLEN + 5)(%r8), %r8
+    jmp .Loop
+
 
 .Found:
-    movq $0, %r9 //inserted is then 0
+    movq $0, (%r9) //inserted is then 0
     movq %r8, %rax //return found value
     jmp .Return
 
 .addNew:
-    movq $16, %rdi
+    movq $(MAX_WORDLEN + 1 + 4 + 8), %rdi
     call malloc //allocate new space for memory
+    test %rax, %rax                       // Check if malloc returned NULL
+    je .Return
+
     movq %r10, (%rax)
-    movq $r8, 8(%rax) //offset is 8
+    movq $r8, (MAX_WORDLEN + 5)(%rax)
+    movl $0, (MAX_WORDLEN + 1)(%rax)
     //now new node points to head
-    movq %rax, %r8 //return new head
-    movq $1, %r9 //inserted is 1
+    movq %rax, %r8 //update head
+    movq $1, (%r9) //inserted is 1
 
 .Return:
+    movq %r8, %rax
     addq $8, %rsp
 	ret
 
@@ -492,7 +500,7 @@ wc_dict_find_or_insert:
     movq $16, %rdi
             call malloc //allocate new space for memory
     movq %r10, (%rax)
-    movq $r8, 8(%rax) //offset is 8
+    movq %r8, 8(%rax) //offset is 8
     //now new node points to head
     movq %rax, %r8 //return new head
     movq $1, %r9 //inserted is 1

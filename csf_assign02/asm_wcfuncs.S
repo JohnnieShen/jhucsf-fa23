@@ -417,24 +417,24 @@ wc_trim_non_alpha:
  */
 	.globl wc_find_or_insert
 wc_find_or_insert:
-	subq $8 , %rsp
     pushq %r12
     pushq %r13
     pushq %rbp
     pushq %rbx
+    pushq %r14
 
     //movq %rdi, %r8 head pointer
     //movq %rdx, %r9 inserted value
     //movq %rsi, %r10 String value
 
     movq %rdi, %r12
+    movq %r12, %r14
     movq %rdx, %r13
     movq %rsi, %rbp
 
 .find_or_insert_loop:
     test %r12, %r12
     je .find_or_insert_addNew //we looped through all the entries and the inserted element is not found
-
     movq %rbp, %rdi
     movq %r12, %rsi
     call wc_str_compare
@@ -446,7 +446,7 @@ wc_find_or_insert:
 
 
 .find_or_insert_found:
-    movq $0, (%r13) //inserted is then 0
+    movl $0, (%r13) //inserted is then 0
     movq %r12, %rax //return found value
     jmp .find_or_insert_return
 
@@ -462,17 +462,17 @@ wc_find_or_insert:
     movq %rbp, %rsi
     call wc_str_copy
 
-    movq %r12, WORDENTRY_NEXT_OFFSET(%rbx)
+    movq %r14, WORDENTRY_NEXT_OFFSET(%rbx)
     movq $0, WORDENTRY_COUNT_OFFSET(%rbx)
     //now new node points to head
-    movq $1, (%r13) //inserted is 1
+    movl $1, (%r13) //inserted is 1
     movq %rbx, %rax
 .find_or_insert_return:
+    popq %r14
     popq %rbx
     popq %rbp
     popq %r13
     popq %r12
-    addq $8, %rsp
 	ret
 
 /*

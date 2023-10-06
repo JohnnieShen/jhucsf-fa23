@@ -512,28 +512,35 @@ wc_dict_find_or_insert:
     idiv %ebx
 
     movl %edx, %ebp
+    xor %r13, %r13
+    movl %edx, %r13d
 
     movq $0, %rbx
 
     imulq $8, %rbp
+    pushq %r12
     addq %rbp, %r12
     movq (%r12), %rdi
+    popq %r12
     movq %r14, %rsi
 
     pushq %rbp
     movq %rsp, %rbp
     subq $4, %rsp
     movq %rbp, %rdx
+    movl $0, (%rbp)
     call wc_find_or_insert
     movq %rax, %r15
-    cmpq $1, (%rbp)
+    cmpl $1, (%rbp)
     je .dict_find_or_insert_inserted
+    addq $4, %rsp
+    popq %rbp
     jmp .dict_find_or_insert_not_inserted
 
 .dict_find_or_insert_inserted:
     addq $4, %rsp
     popq %rbp
-    movq %r15, (%r12, %rbp, 8)
+    movq %r15, (%r12, %r13, 8)
 
 .dict_find_or_insert_not_inserted:
     movq %r15, %rax

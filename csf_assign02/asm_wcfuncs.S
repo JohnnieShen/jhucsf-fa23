@@ -13,7 +13,6 @@
 #define WORDENTRY_WORD_OFFSET   (0)
 #define WORDENTRY_COUNT_OFFSET  (MAX_WORDLEN+1)
 #define WORDENTRY_NEXT_OFFSET   (MAX_WORDLEN+1+4+4)
-#define WORDENTRY_SIZE          (WORDENTRY_NEXT_OFFSET+8)
 
     .section .rodata
     sSpace: .string " "
@@ -118,17 +117,17 @@ wc_str_compare:
     jmp .RightGreater
 
 .LeftGreater:
-    movq $1, %rax
+    movl $1, %eax
     addq $8, %rsp
     ret
 
 .RightGreater:
-    movq $-1, %rax
+    movl $-1, %eax
     addq $8, %rsp
     ret
 
 .Equal:
-    movq $0, %rax
+    movl $0, %eax
     addq $8, %rsp
     ret
 
@@ -421,28 +420,28 @@ wc_trim_non_alpha:
  */
 	.globl wc_find_or_insert
 wc_find_or_insert:
-    subq $8 , %rsp
     pushq %r12
     pushq %r13
     pushq %rbp
     pushq %rbx
-    pushq %r15
-    //
+    pushq %r14
 
+    //movq %rdi, %r8 head pointer
+    //movq %rdx, %r9 inserted value
+    //movq %rsi, %r10 String value
 
     movq %rdi, %r12
-    movq %rdi, %r15
+    movq %r12, %r14
     movq %rdx, %r13
     movq %rsi, %rbp
 
 .find_or_insert_loop:
     test %r12, %r12
-    jz .find_or_insert_addNew //we looped through all the entries and the inserted element is not found
-
+    je .find_or_insert_addNew //we looped through all the entries and the inserted element is not found
     movq %rbp, %rdi
     movq %r12, %rsi
     call wc_str_compare
-    cmp $0, %rax //0 is returned meaning equal
+    cmpq $0, %rax //0 is returned meaning equal
     je .find_or_insert_found
 
     movq WORDENTRY_NEXT_OFFSET(%r12), %r12
@@ -455,31 +454,29 @@ wc_find_or_insert:
     jmp .find_or_insert_return
 
 .find_or_insert_addNew:
-    movq $(WORDENTRY_SIZE), %rdi
+    movq $(MAX_WORDLEN + 1 + 4 + 8), %rdi
     call malloc //allocate new space for memory
     test %rax, %rax                       // Check if malloc returned NULL
     je .find_or_insert_return
 
     movq %rax, %rbx
+
     movq %rbx, %rdi
     movq %rbp, %rsi
     call wc_str_copy
 
+    movq %r14, WORDENTRY_NEXT_OFFSET(%rbx)
     movq $0, WORDENTRY_COUNT_OFFSET(%rbx)
-    movq %r15, WORDENTRY_NEXT_OFFSET(%rbx)
     //now new node points to head
     movl $1, (%r13) //inserted is 1
     movq %rbx, %rax
-
 .find_or_insert_return:
-    popq %r15
+    popq %r14
     popq %rbx
     popq %rbp
     popq %r13
     popq %r12
-
-    addq $8, %rsp
-    ret
+	ret
 
 /*
  * Find or insert the WordEntry object for the given string (s), returning
@@ -495,53 +492,58 @@ wc_find_or_insert:
  */
 	.globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-    subq $8, %rsp
+    subq $8 , %rsp
     pushq %r12
     pushq %r13
+    pushq %r14
+    pushq %r15
     pushq %rbp
     pushq %rbx
-    pushq %r15
-
     movq %rdi, %r12
-    movq %rsi, %rbp
-    movq %rdx, %r13
-
-    //find hashcode
-    movq %r13, %rdi
+    movl %esi, %r13d
+    movq %rdx, %r14
+    movq %r14, %rdi
     call wc_hash
+    movl %eax, %ebp
 
-    movq %rax, %rbx
-    //entire hashcode stored in %rbx
+    movl %ebp, %eax
+    xor %edx, %edx
+    movl %r13d, %ebx
+    idiv %ebx
 
-    movq %rbp, %rcx
-    xorq %rdx, %rdx
-    divq %rcx
-    //divided by the number of bins to store the hashcode back in the remainder
+    movl %edx, %ebp
 
-    movq %rdx, %rbx
+    movq $0, %rbx
 
+    imulq $8, %rbp
+    addq %rbp, %r12
+    movq (%r12), %rdi
+    movq %r14, %rsi
 
-    movq (%r12, %rbx, 8), %rdi
-    movq %r13, %rsi
-    movq %r15, %rdx  //r15 used to store the inserted flag
-    movl $0, (%rdx)
+    pushq %rbp
+    movq %rsp, %rbp
+    subq $4, %rsp
+    movq %rbp, %rdx
+    call wc_find_or_insert
+    movq %rax, %r15
+    cmpq $1, (%rbp)
+    je .dict_find_or_insert_inserted
+    jmp .dict_find_or_insert_not_inserted
 
-call wc_find_or_insert
-    cmp $0, %r15 //if returned 0, meaning it is found
-    je .wc_dict_end
+.dict_find_or_insert_inserted:
+    addq $4, %rsp
+    popq %rbp
+    movq %r15, (%r12, %rbp, 8)
 
-    movq %rax, (%r12, %rbx, 8) //add new element
-
-.wc_dict_end:
-    movq (%r12, %rbx, 8), %rax
-
-    popq %r15
+.dict_find_or_insert_not_inserted:
+    movq %r15, %rax
     popq %rbx
     popq %rbp
+    popq %r15
+    popq %r14
     popq %r13
     popq %r12
-
-    addq $8, %rsp
+    addq $8 , %rsp
 	ret
 
 /*

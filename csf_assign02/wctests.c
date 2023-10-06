@@ -118,6 +118,8 @@ FILE *create_input_file(const unsigned char *text) {
 void test_hash(TestObjs *objs) {
   uint32_t hash;
 
+  
+
   hash = wc_hash(objs->test_str_1);
   ASSERT(261238937U == hash);
 
@@ -332,7 +334,6 @@ void test_find_or_insert(TestObjs *objs) {
 void test_dict_find_or_insert(TestObjs *objs) {
   struct WordEntry *dict[5] = { NULL, NULL, NULL, NULL, NULL };
   struct WordEntry *p;
-
   // "avis" and "ax's" should go in bucket 1
 
   p = wc_dict_find_or_insert(dict, 5, (const unsigned char *) "avis");

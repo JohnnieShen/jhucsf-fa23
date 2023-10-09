@@ -1,6 +1,33 @@
 #include <iostream>
 #include <string.h>
+
 using namespace std;
+
+struct block{
+private:
+    int index;
+    bool valid;
+    int tag;
+    int memoryMapped;
+
+public:
+    block(int index){
+        this->index = index;
+    }
+
+    int loadData(){
+        if(valid){
+            return 1;
+        }
+        memoryMapped = tag + index; //needs to be modified
+    }
+
+    bool isValid(){
+        return valid;
+    }
+
+};
+
 
 bool isPowerOfTwo(int n) {
     if(n <= 0) return false;
@@ -29,4 +56,11 @@ int main(int argc, char **argv) {
             return 1;
         }
     }
+
+    int access = 0;
+    int load = 0;
+    int store = 0;
+    int hit = 0;
+    int miss = 0;
+
 }

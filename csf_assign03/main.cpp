@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string.h>
+#include <vector>
 
 using namespace std;
 
@@ -45,7 +46,7 @@ public:
     }
 
     int getData(int tag){
-        return slots[tag].loadData;
+        return slots[tag].loadData();
     }
 };
 

@@ -3,23 +3,27 @@
 
 using namespace std;
 
-struct block{
+struct Slot{
 private:
     int index;
     bool valid;
     int tag;
-    int memoryMapped;
+    int accessTimeStamp;
+    int loadTimeStamp;
+    int data;
 
 public:
-    block(int index){
+    Slot(int index, int tag){
         this->index = index;
+        this->valid = false;
+        this->tag = tag;
+        this->accessTimeStamp = -1;
+        this->loadTimeStamp = -1;
+        this->data = -1;
     }
 
     int loadData(){
-        if(valid){
-            return 1;
-        }
-        memoryMapped = tag + index; //needs to be modified
+        return data;
     }
 
     bool isValid(){
@@ -28,6 +32,55 @@ public:
 
 };
 
+struct Set{
+private:
+    vector<Slot> slots;
+    int index;
+public:
+    Set(int size, int index){
+        this->index = index;
+        for(int i = 0; i < size; i++){
+            slots.push_back(Slot(index, i));
+        }
+    }
+
+    int getData(int tag){
+        return slots[tag].loadData;
+    }
+};
+
+struct Cache{
+private:
+    vector<Set> sets;
+
+    int getIndex(string hexAddress){
+        long address = stoul(hexAddress, nullptr, 16);
+        long index = (address >> 2) & ((1 << 5) - 1);
+        return (int) index;
+    }
+
+    int getTag(string hexAddress){
+        long address = stoul(hexAddress, nullptr, 16);
+        long tag = address >> 7;
+        return (int) tag;
+    }
+
+public:
+    Cache(int size, int setSize){
+        for(int i = 0; i < size; i++){
+            sets.push_back(Set(setSize, i));
+        }
+    }
+
+    int getData(string hexAddress){
+        int index = getIndex(hexAddress);
+        int tag = getTag(hexAddress);
+        Set currIndex = sets[index];
+        return currIndex.getData(tag);
+    }
+
+
+};
 
 bool isPowerOfTwo(int n) {
     if(n <= 0) return false;
@@ -57,10 +110,20 @@ int main(int argc, char **argv) {
         }
     }
 
+    //cache initialization
+    Cache cache = Cache(numSets, numBlocks);
+
+
+
     int access = 0;
     int load = 0;
     int store = 0;
     int hit = 0;
     int miss = 0;
+
+
+
+
+
 
 }

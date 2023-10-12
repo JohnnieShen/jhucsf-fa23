@@ -116,11 +116,11 @@ int main(int argc, char **argv) {
 
 
 
-    int access = 0;
-    int load = 0;
-    int store = 0;
-    int hit = 0;
-    int miss = 0;
+    // int access = 0;
+    // int load = 0;
+    // int store = 0;
+    // int hit = 0;
+    // int miss = 0;
 
 
 

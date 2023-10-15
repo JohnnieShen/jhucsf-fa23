@@ -1,86 +1,58 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
 struct Slot{
-private:
-    int index;
+    uint32_t tag;
     bool valid;
-    int tag;
-    int accessTimeStamp;
-    int loadTimeStamp;
-    int data;
-
-public:
-    Slot(int index, int tag){
-        this->index = index;
-        this->valid = false;
-        this->tag = tag;
-        this->accessTimeStamp = -1;
-        this->loadTimeStamp = -1;
-        this->data = -1;
-    }
-
-    int loadData(){
-        return data;
-    }
-
-    bool isValid(){
-        return valid;
-    }
-
+    bool dirty;
+    uint32_t load_ts;
+    uint32_t access_ts;
+    Slot() : tag(0), valid(false), dirty(false), load_ts(0), access_ts(0) {}
 };
 
 struct Set{
-private:
     vector<Slot> slots;
-    int index;
-public:
-    Set(int size, int index){
-        this->index = index;
-        for(int i = 0; i < size; i++){
-            slots.push_back(Slot(index, i));
-        }
-    }
-
-    int getData(int tag){
-        return slots[tag].loadData();
-    }
+    Set(int num_slots) : slots(num_slots) {}
 };
 
 struct Cache{
 private:
-    vector<Set> sets;
+    std::vector<Set> sets;
+    int num_sets;
+    int num_blocks;
+    int block_size;
+    int set_index_bits;
+    int block_offset_bits;
 
-    int getIndex(string hexAddress){
-        long address = stoul(hexAddress, nullptr, 16);
-        long index = (address >> 2) & ((1 << 5) - 1);
-        return (int) index;
-    }
-
-    int getTag(string hexAddress){
-        long address = stoul(hexAddress, nullptr, 16);
-        long tag = address >> 7;
-        return (int) tag;
-    }
+    bool writeAllocate;
+    bool writeThrough;
+    bool useLRU;
+    
+    int totalLoads;
+    int totalStores;
+    int loadHits;
+    int loadMisses;
+    int storeHits;
+    int storeMisses;
+    int totalCycles;
 
 public:
-    Cache(int size, int setSize){
-        for(int i = 0; i < size; i++){
-            sets.push_back(Set(setSize, i));
-        }
+    Cache(int num_sets, int num_blocks, int block_size, bool writeAllocate, bool writeThrough, bool useLRU) 
+        : num_sets(num_sets), num_blocks(num_blocks), block_size(block_size), sets(num_sets, Set(num_blocks)), writeAllocate(writeAllocate)
+        , writeThrough(writeThrough), useLRU(useLRU), totalLoads(0), totalStores(0), loadHits(0), loadMisses(0), storeHits(0), storeMisses(0)
+        , totalCycles(0){
+        set_index_bits = int(log2(num_sets));
+        block_offset_bits = int(log2(block_size));
+        sets.resize(num_sets);
     }
 
-    int getData(string hexAddress){
-        int index = getIndex(hexAddress);
-        int tag = getTag(hexAddress);
-        Set currIndex = sets[index];
-        return currIndex.getData(tag);
+    void access(char type, uint32_t address) {
+        
     }
-
-
 };
 
 bool isPowerOfTwo(int n) {
@@ -88,10 +60,16 @@ bool isPowerOfTwo(int n) {
     return (n & (n - 1)) == 0;
 }
 
-int main(int argc, char **argv) {
+
+
+
+int main(int argc, char *argv[]) {
     int numSets = stoi(argv[1],NULL,10);
     int numBlocks = stoi(argv[2],NULL,10);
     int blockSize = stoi(argv[3],NULL,10);
+    bool writeAllocate = string(argv[4]) == "write-allocate";
+    bool writeThrough = string(argv[5]) == "write-through";
+    bool useLRU = string(argv[6]) == "lru";
     if(argc != 7) {
         cout<<"incorrect arguments"<<endl;
         return 1;
@@ -112,19 +90,6 @@ int main(int argc, char **argv) {
     }
 
     //cache initialization
-    Cache cache = Cache(numSets, numBlocks);
-
-
-
-    // int access = 0;
-    // int load = 0;
-    // int store = 0;
-    // int hit = 0;
-    // int miss = 0;
-
-
-
-
-
-
+    Cache cache = Cache(numSets, numBlocks, blockSize, writeAllocate, writeThrough, useLRU);
+    
 }
